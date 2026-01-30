@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: misekore-web
+    working_dir: /app/frontend
     ports:
       - "3000:3000"
     volumes:
