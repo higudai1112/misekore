@@ -15,7 +15,7 @@ export default function Footer() {
   const pathname = usePathname()
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 border-t bg-white">
+    <footer className="fixed right-0 bottom-0 left-0 border-t bg-white">
       <nav className="flex justify-around py-2 text-xs">
         {tabs.map((tab) => {
           // アクティブ判定
@@ -25,7 +25,7 @@ export default function Footer() {
               key={tab.href}
               href={tab.href}
               className={`flex flex-col items-center ${
-                active ? 'text-emerald-600 font-medium' : 'text-gray-500'
+                active ? 'font-medium text-emerald-600' : 'text-gray-500'
               }`}
             >
               {/* アイコンを後で追加 */}
