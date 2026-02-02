@@ -1,41 +1,40 @@
-import { defineConfig, globalIgnores } from 'eslint/config'
-import nextVitals from 'eslint-config-next/core-web-vitals'
-import nextTs from 'eslint-config-next/typescript'
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FlatCompat } from '@eslint/eslintrc'
+import js from '@eslint/js'
+import tseslint from 'typescript-eslint'
+import react from 'eslint-plugin-react'
 import prettier from 'eslint-config-prettier'
 
-const _filename = fileURLToPath(import.meta.url)
-const _dirname = dirname(_filename)
-
-const compat = new FlatCompat({
-  baseDirectory: _dirname,
-})
-
-export default defineConfig([
+export default [
+  // ===== 無視対象 =====
   {
-    files: ['**/*.{js,jsx,ts,tsx}'],
+    ignores: [
+      'node_modules/**',
+      '.next/**',
+      'out/**',
+      'build/**',
+      'dist/**',
+      'prisma/**',
+      'src/generated/**',
+      '.env',
+    ],
   },
 
-  // Next.js recommended rules
-  ...nextVitals,
-  ...nextTs,
+  // ===== JavaScript =====
+  js.configs.recommended,
 
-  // Override default ignores
-  globalIgnores([
-    'src/generated/prisma/**',
-    'prisma/**',
-    '.next/**',
-    'out/**',
-    'build/**',
-    'next-env.d.ts',
-    'node_modules/**',
-  ]),
+  // ===== TypeScript =====
+  ...tseslint.configs.recommended,
 
-  // Compat for legacy extends
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  // ===== React =====
+  {
+    plugins: {
+      react,
+    },
+    rules: {
+      'react/react-in-jsx-scope': 'off', // Next.js では不要
+    },
+  },
 
-  // Disable rules conflicting with Prettier
+  // ===== Prettier競合回避 =====
   prettier,
-])
+]
+
