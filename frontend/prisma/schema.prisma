@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum ShopStatus {
+  WANT
+  VISITED
+  FAVORITE
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  profile      Profile?
+  userShops    UserShop[]
+  shopPhotos   ShopPhoto[]
+}
+
+model Profile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  name      String?
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Shop {
+  id        String       @id @default(uuid())
+  name      String
+  address   String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  userShops  UserShop[]
+  shopPhotos ShopPhoto[]
+}
+
+model UserShop {
+  id        String      @id @default(uuid())
+  userId    String
+  shopId    String
+  status    ShopStatus
+  memo      String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, shopId])
+}
+
+model ShopPhoto {
+  id        String   @id @default(uuid())
+  shopId    String
+  userId    String
+  imageUrl  String
+  createdAt DateTime @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+

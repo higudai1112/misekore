@@ -1,12 +1,12 @@
-version: "3.9"
-
 services:
   web:
+    container_name: misekore-web
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: misekore-web
-    working_dir: /app/frontend
+    working_dir: /app
+    env_file:
+      - ./frontend/.env
     ports:
       - "3000:3000"
     volumes:
@@ -14,3 +14,5 @@ services:
       - /app/node_modules
     environment:
       - NODE_ENV=development
+    command: npm run dev
+
