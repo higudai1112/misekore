@@ -8,22 +8,21 @@ import { PrismaPg } from '@prisma/adapter-pg'
  * ここで明示的にチェックする
  */
 const connectionString = process.env.DATABASE_URL
-if (!connectionString) {
-  throw new Error('DATABASE_URL is not defined')
-}
 
 /**
  * PostgreSQL connection pool
  * Neon / Docker / Node runtime 向け
  */
-const pool = new Pool({
-  connectionString,
-})
+const pool = connectionString
+  ? new Pool({
+    connectionString,
+  })
+  : undefined
 
 /**
  * Prisma v7 Driver Adapter
  */
-const adapter = new PrismaPg(pool)
+const adapter = pool ? new PrismaPg(pool) : undefined
 
 /**
  * Hot Reload 対策（Next.js Dev）
