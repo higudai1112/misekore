@@ -37,4 +37,3 @@ export default [
   // ===== Prettier競合回避 =====
   prettier,
 ]
-
