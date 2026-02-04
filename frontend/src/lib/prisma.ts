@@ -4,25 +4,24 @@ import { PrismaPg } from '@prisma/adapter-pg'
 
 /**
  * DATABASE_URL が未設定のまま起動すると
- * Prisma が分かりづらいエラーを出すため、
- * ここで明示的にチェックする
+ * Prisma v7 (Adapter) が初期化エラーになるため、
+ * ビルド時などはダミーの値を設定して回避する
  */
-const connectionString = process.env.DATABASE_URL
+const connectionString =
+  process.env.DATABASE_URL || 'postgresql://build:build@localhost:5432/build'
 
 /**
  * PostgreSQL connection pool
  * Neon / Docker / Node runtime 向け
  */
-const pool = connectionString
-  ? new Pool({
-    connectionString,
-  })
-  : undefined
+const pool = new Pool({
+  connectionString,
+})
 
 /**
  * Prisma v7 Driver Adapter
  */
-const adapter = pool ? new PrismaPg(pool) : undefined
+const adapter = new PrismaPg(pool)
 
 /**
  * Hot Reload 対策（Next.js Dev）
