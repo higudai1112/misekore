@@ -5,8 +5,8 @@ import { usePathname } from 'next/navigation'
 
 const tabs = [
   { href: '/want', label: '行きたい' },
-  { href: '/recommend', label: 'おすすめ' },
-  { href: '/create', label: '登録' },
+  { href: '/favorite', label: 'お気に入り' },
+  { href: '/shops/new', label: '登録' },
   { href: '/map', label: '地図' },
   { href: '/settings', label: '設定' },
 ]

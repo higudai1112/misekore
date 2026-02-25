@@ -1,0 +1,1 @@
+export type ShopStatus = 'WANT' | 'VISITED' | 'FAVORITE'

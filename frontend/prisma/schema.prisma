@@ -45,6 +45,8 @@ model Shop {
   id        String       @id @default(uuid())
   name      String
   address   String?
+  lat       Float?
+  lng       Float?
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
@@ -58,6 +60,7 @@ model UserShop {
   shopId    String
   status    ShopStatus
   memo      String?
+  visitedAt DateTime?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 

@@ -15,6 +15,7 @@ export default function SignupPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (loading) return
     setError('')
 
     if (password !== passwordConfirmation) {
@@ -28,7 +29,7 @@ export default function SignupPage() {
         email,
         password,
       })
-      alert('登録が完了しました')
+      // redirect handle by server action
     } catch (err) {
       setError('登録に失敗しました。')
     } finally {
@@ -81,7 +82,7 @@ export default function SignupPage() {
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           {/* 登録ボタン */}
-          <Button size="lg" className="w-full" disabled={loading}>
+          <Button type="submit" size="lg" className="w-full" disabled={loading}>
             {loading ? '登録中...' : '登録'}
           </Button>
         </form>
