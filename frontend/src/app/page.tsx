@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 export default function TitlePage() {
@@ -19,13 +20,17 @@ export default function TitlePage() {
 
         {/* ボタン */}
         <div className="flex flex-col gap-3 sm:gap-4">
-          <Button size="lg" className="w-full">
-            アカウント登録
-          </Button>
+          <Link href="/signup" className="w-full">
+            <Button size="lg" className="w-full">
+              アカウント登録
+            </Button>
+          </Link>
 
-          <Button variant="outline" size="lg" className="w-full">
-            ログイン
-          </Button>
+          <Link href="login" className="w-full">
+            <Button variant="outline" size="lg" className="w-full">
+              ログイン
+            </Button>
+          </Link>
         </div>
       </div>
     </main>

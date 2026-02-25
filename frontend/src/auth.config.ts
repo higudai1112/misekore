@@ -14,10 +14,7 @@ export const authConfig = {
 
             if (isOnPublicPage) {
                 if (isLoggedIn) {
-                    // If logged in and on public page, maybe redirect to /want?
-                    // User request didn't specify, but usually good UX.
-                    // For now, let's keep it simple and allow access.
-                    return true
+                    return Response.redirect(new URL('/want', nextUrl))
                 }
                 return true // Public pages are accessible
             }

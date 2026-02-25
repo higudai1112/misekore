@@ -14,7 +14,7 @@ export default function LoginPage() {
       email,
       password,
       redirect: true,
-      callbackUrl: '/',
+      callbackUrl: '/want',
     })
   }
 
@@ -23,20 +23,31 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <h1 className="mb-6 text-center text-2xl font-bold">ログイン</h1>
 
-        <form className="space-y-4">
-          {/* メールアドレス入力欄 */}
+        {/* 🔑 action を追加 */}
+        <form action={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <Label htmlFor="email">メールアドレス</Label>
-            <Input id="email" type="email" placeholder="example@example.com" />
+            {/* 🔑 name を追加 */}
+            <Input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="example@example.com"
+            />
           </div>
 
-          {/* パスワード入力欄 */}
           <div className="space-y-1">
             <Label htmlFor="password">パスワード</Label>
-            <Input id="password" type="password" />
+            {/* 🔑 name を追加 */}
+            <Input
+              id="password"
+              name="password"
+              type="password"
+            />
           </div>
 
-          <Button size="lg" className="w-full">
+          {/* 🔑 type="submit" を明示 */}
+          <Button type="submit" size="lg" className="w-full">
             ログイン
           </Button>
         </form>
@@ -44,3 +55,4 @@ export default function LoginPage() {
     </main>
   )
 }
+

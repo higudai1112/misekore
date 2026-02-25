@@ -1,48 +1,12 @@
 import { SegmentTabs } from './_components/segment-tabs'
 import { RestaurantCard } from './_components/restaurant-card'
-import type { Restaurant } from './_components/restaurant-card'
 import { AppLayout } from '@/components/layout/AppLayout'
+import { getWantShops } from '@/lib/shop'
 
-const restaurants: Restaurant[] = [
-  {
-    id: '1',
-    name: 'The Garden Bistro',
-    walk: 'Main St. Station から徒歩5分',
-    tags: ['Italian', 'Organic'],
-    imageURL:
-      'https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=1200&q=80',
-    status: 'visited',
-  },
-  {
-    id: '2',
-    name: 'The Garden Bistro',
-    walk: 'Main St. Station から徒歩5分',
-    tags: ['Italian', 'Organic'],
-    imageURL:
-      'https://images.unsplash.com/photo-1528605248644-14dd04022da1?auto=format&fit=crop&w=1200&q=80',
-    status: 'want',
-  },
-  {
-    id: '3',
-    name: 'The Garden Bistro',
-    walk: 'Main St. Station から徒歩5分',
-    tags: ['Italian', 'Organic'],
-    imageURL:
-      'https://images.unsplash.com/photo-1529692236671-f1f6cf9683ba?auto=format&fit=crop&w=1200&q=80',
-    status: 'want',
-  },
-  {
-    id: '4',
-    name: 'The Garden Bistro',
-    walk: 'Main St. Station から徒歩5分',
-    tags: ['Italian', 'Organic'],
-    imageURL:
-      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1200&q=80',
-    status: 'visited',
-  },
-]
 
-export default function WantPage() {
+export default async function WantPage() {
+  const shops = await getWantShops()
+
   return (
     <AppLayout>
       <main className="min-h-screen px-4 pt-6 pb-24 text-[15px] text-gray-800 sm:px-6 lg:px-10">
@@ -68,8 +32,17 @@ export default function WantPage() {
 
           {/* お店カード一覧 */}
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {restaurants.map((r) => (
-              <RestaurantCard key={r.id} restaurant={r} />
+            {shops.map((shop) => (
+              <RestaurantCard
+                key={shop.id}
+                restaurant={{
+                  id: shop.id,
+                  name: shop.name,
+                  walk: shop.address ?? '',
+                  tags: [],
+                  imageURL: '',
+                  status: 'want', // want一覧なので固定
+                }} />
             ))}
           </div>
         </div>
