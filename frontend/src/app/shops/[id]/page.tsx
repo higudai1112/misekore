@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { AppLayout } from '@/components/layout/AppLayout'
 import { notFound } from 'next/navigation'
 import { getShopDetail } from '@/lib/shop'
@@ -27,7 +29,7 @@ export default async function ShopDetailPage({
     <AppLayout>
       <div className="pb-28 px-4">
         <div className="mx-auto w-full max-w-2xl space-y-6">
-        
+
           <ShopHeader shopId={shop.id} />
 
           {/* 写真 */}

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { SegmentTabs } from './_components/segment-tabs'
 import { RestaurantCard } from './_components/restaurant-card'
 import { AppLayout } from '@/components/layout/AppLayout'
