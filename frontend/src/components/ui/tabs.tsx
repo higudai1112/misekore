@@ -6,9 +6,12 @@ import { cva, type VariantProps } from 'class-variance-authority'
 
 import { cn } from '@/lib/utils'
 
+// Radix UI をベースにしたタブ切り替えコンポーネント群
+
+// タブ全体を囲むルートコンポーネント
 function Tabs({
   className,
-  orientation = 'horizontal',
+  orientation = 'horizontal', // デフォルトは水平方向
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Root>) {
   return (
@@ -40,6 +43,7 @@ const tabsListVariants = cva(
   },
 )
 
+// タブのボタンを並べるヘッダー部分
 function TabsList({
   className,
   variant = 'default',
@@ -56,6 +60,7 @@ function TabsList({
   )
 }
 
+// クリックして切り替える個別のタブボタン
 function TabsTrigger({
   className,
   ...props
@@ -75,6 +80,7 @@ function TabsTrigger({
   )
 }
 
+// 選択したタブの内容を表示するコンテンツ領域
 function TabsContent({
   className,
   ...props

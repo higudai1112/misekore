@@ -23,7 +23,7 @@ export async function signUp(input: SignUpInput) {
   try {
     console.log('🟡 signUp start (SQL)', { email })
 
-    // ① 既存ユーザー確認
+    // ① 既存ユーザーの確認（同じメールアドレスが既に登録されていないかチェック）
     const existingUsers = await query<UserIdRow>(
       `
       SELECT id
@@ -38,13 +38,13 @@ export async function signUp(input: SignUpInput) {
       throw new Error('USER_ALREADY_EXISTS')
     }
 
-    // ② パスワードハッシュ化
+    // ② データベースに保存する前にパスワードをハッシュ化（暗号化）して安全にする
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const userId = randomUUID()
     const now = new Date()
 
-    // ③ users 作成
+    // ③ users テーブルに新しいユーザーレコードを作成
     await query(
       `
       INSERT INTO users (
@@ -59,7 +59,7 @@ export async function signUp(input: SignUpInput) {
       [userId, email, hashedPassword, now, now]
     )
 
-    // ④ profiles 作成（名前は任意）
+    // ④ profiles テーブルにプロフィールを作成（名前は任意入力項目のため null になる場合あり）
     await query(
       `
       INSERT INTO profiles (
@@ -76,15 +76,15 @@ export async function signUp(input: SignUpInput) {
 
     console.log('🟢 user created')
 
-    // ⑤ 自動ログイン
+    // ⑤ 登録成功後、そのまま自動的にログイン状態にする
     await signIn('credentials', {
       email,
       password,
       redirect: false,
     })
 
-    // ⑥ リダイレクト
-    redirect('/want')
+    // ⑥ ログイン完了後、一覧（/shops）ページへリダイレクトする
+    redirect('/shops')
   } catch (error) {
     console.error('🔴 signUp error', error)
     throw error

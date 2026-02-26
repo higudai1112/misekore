@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const tabs = [
-  { href: '/want', label: '行きたい' },
+  { href: '/shops', label: 'お店一覧' },
   { href: '/favorite', label: 'お気に入り' },
   { href: '/shops/new', label: '登録' },
   { href: '/map', label: '地図' },
@@ -24,9 +24,8 @@ export default function Footer() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-col items-center ${
-                active ? 'font-medium text-emerald-600' : 'text-gray-500'
-              }`}
+              className={`flex flex-col items-center ${active ? 'font-medium text-emerald-600' : 'text-gray-500'
+                }`}
             >
               {/* アイコンを後で追加 */}
               <span className="text-lg">⚫️</span>

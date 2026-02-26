@@ -6,6 +6,9 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+// Radix UI をベースにしたドロップダウンメニューコンポーネント群
+
+// ドロップダウンメニューのルート
 function DropdownMenu({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Root>) {
@@ -20,6 +23,7 @@ function DropdownMenuPortal({
   )
 }
 
+// メニューを開くためのトリガー
 function DropdownMenuTrigger({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Trigger>) {
@@ -31,9 +35,10 @@ function DropdownMenuTrigger({
   )
 }
 
+// ドロップダウンメニューの中身（ポップオーバー部分）
 function DropdownMenuContent({
   className,
-  sideOffset = 4,
+  sideOffset = 4, // トリガーとメニューの隙間
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Content>) {
   return (
@@ -59,6 +64,7 @@ function DropdownMenuGroup({
   )
 }
 
+// メニュー内の各項目（クリック可能な要素）
 function DropdownMenuItem({
   className,
   inset,
@@ -66,7 +72,7 @@ function DropdownMenuItem({
   ...props
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Item> & {
   inset?: boolean
-  variant?: 'default' | 'destructive'
+  variant?: 'default' | 'destructive' // エラーや削除などの危険な操作用のバリアント
 }) {
   return (
     <DropdownMenuPrimitive.Item

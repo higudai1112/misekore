@@ -5,16 +5,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
+// ログイン機能を提供するページコンポーネント
 export default function LoginPage() {
+  // フォーム送信時に呼ばれる Server Action 相当の処理（NextAuthを用いたログイン）
   async function handleSubmit(formData: FormData) {
     const email = formData.get('email')
     const password = formData.get('password')
 
+    // NextAuthの signIn 関数を呼び出し、Credentials（メアドとパスワード）で認証を試みる
     await signIn('credentials', {
       email,
       password,
       redirect: true,
-      callbackUrl: '/want',
+      callbackUrl: '/shops', // 認証成功後に遷移する先のURL
     })
   }
 
@@ -23,11 +26,11 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <h1 className="mb-6 text-center text-2xl font-bold">ログイン</h1>
 
-        {/* 🔑 action を追加 */}
+        {/* ログインフォーム。送信時に handleSubmit 処理が走る */}
         <form action={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <Label htmlFor="email">メールアドレス</Label>
-            {/* 🔑 name を追加 */}
+            {/* 🔑 name 属性を指定し、formData.get('email') で取得できるようにする */}
             <Input
               id="email"
               name="email"
@@ -38,7 +41,7 @@ export default function LoginPage() {
 
           <div className="space-y-1">
             <Label htmlFor="password">パスワード</Label>
-            {/* 🔑 name を追加 */}
+            {/* 🔑 name 属性を指定し、formData.get('password') で取得できるようにする */}
             <Input
               id="password"
               name="password"

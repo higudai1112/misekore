@@ -7,9 +7,10 @@ import { createShop } from '@/app/actions/create-shop'
 
 // お店登録ページ (Server Component)
 export default async function NewShopPage() {
-    // ログイン必須
+    // ログイン状態を確認（ログイン必須のページのため）
     const session = await auth()
 
+    // ログインしていない場合はトップページへリダイレクト
     if (!session?.user) {
         redirect('/')
     }
@@ -20,6 +21,7 @@ export default async function NewShopPage() {
                 <div className="mx-auto w-full max-w-md sm:max-w-lg md:max-w-xl">
                     <h1 className="mb-6 text-xl font-bold">お店を登録する</h1>
 
+                    {/* action に Server Action の createShop を指定することで、JavaScript無効でも動作するフォーム送信を実現 */}
                     <form action={createShop} className="space-y-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5">
                         <div>
                             <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
