@@ -13,21 +13,25 @@ import { ShopVisitDate } from '../_components/ShopVisitDate'
 import { ShopMap } from '../_components/ShopMap'
 import { ShopStatusAction } from '../_components/ShopStatusAction'
 
+// URLのパスパラメータ（例: /shops/[id] の [id] 部分）を受け取る
 export default async function ShopDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
+  // パラメータからIDを取り出し、DBからお店の詳細情報を取得
   const { id } = await params
   const shop = await getShopDetail(id)
 
+  // お店が見つからない場合は 404 (Not Found) ページを表示
   if (!shop) {
     notFound()
   }
 
   return (
     <AppLayout>
-      <div className="pb-28 px-4">
+      {/* 画面下部のナビゲーションバーとステータス変更アクションバーの高さ分、下部に余白を持たせる */}
+      <div className="pb-40 px-4">
         <div className="mx-auto w-full max-w-2xl space-y-6">
 
           <ShopHeader shopId={shop.id} />
@@ -76,6 +80,7 @@ export default async function ShopDetailPage({
           </div>
         </div>
 
+        {/* 画面下部に固定表示するステータス変更用のアクションバー */}
         <ShopStatusAction shopId={shop.id} status={shop.status} />
       </div>
     </AppLayout>

@@ -5,6 +5,7 @@ import * as LabelPrimitive from '@radix-ui/react-label'
 
 import { cn } from '@/lib/utils'
 
+// フォームなどの入力項目に付随するラベル（Radix UI を使用）
 function Label({
   className,
   ...props
@@ -13,6 +14,7 @@ function Label({
     <LabelPrimitive.Root
       data-slot="label"
       className={cn(
+        // 無効時のスタイルやテキストの基本スタイル
         'flex items-center gap-2 text-sm leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50',
         className,
       )}

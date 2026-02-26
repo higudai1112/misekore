@@ -6,18 +6,27 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { signUp } from '@/app/actions/sign-up'
 
+// 新規アカウント登録機能を提供するページコンポーネント
 export default function SignupPage() {
+  // フォームの入力値を管理するステート
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
+
+  // エラーメッセージとローディング状態を管理するステート
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  // フォーム送信時の処理
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (loading) return
-    setError('')
+    e.preventDefault() // デフォルトのフォーム送信（ページ遷移）を防ぐ
 
+    // 二重送信を防止
+    if (loading) return
+
+    setError('') // エラーをリセット
+
+    // パスワードの一致確認バリデーション
     if (password !== passwordConfirmation) {
       setError('パスワードが一致しません')
       return
@@ -25,14 +34,16 @@ export default function SignupPage() {
 
     try {
       setLoading(true)
+      // Server Actionの signUp 関数を呼び出してDBに登録＆自動ログイン
       await signUp({
         email,
         password,
       })
-      // redirect handle by server action
+      // 成功時、signUp 側で redirect(/shops) が実行されるためここには来ない
     } catch (err) {
       setError('登録に失敗しました。')
     } finally {
+      // 失敗時などにローディング状態を解除
       setLoading(false)
     }
   }

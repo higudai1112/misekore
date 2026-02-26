@@ -8,7 +8,7 @@ import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
 export async function createShop(formData: FormData) {
-    // 1. auth() でログイン確認
+    // 1. auth() で現在のログイン状態（セッション）を確認
     const session = await auth()
     if (!session?.user) {
         throw new Error('Unauthorized')
@@ -24,7 +24,7 @@ export async function createShop(formData: FormData) {
 
     const memo = formData.get('memo') as string
 
-    // 3. shop_id を randomUUID() で生成
+    // 3. shop_id を randomUUID() で一意のIDとして生成
     const shopId = randomUUID()
 
     // トランザクションのために必要な client 接続を取得
@@ -33,21 +33,34 @@ export async function createShop(formData: FormData) {
     try {
         await client.query('BEGIN')
 
-        // 4. shops に INSERT（status = 'WANT'）
+        // 4. "Shop" と "UserShop" に INSERT
         await client.query(
             `
-      INSERT INTO shops (
-        id,
-        name,
-        memo,
-        user_id,
-        status,
-        created_at,
-        updated_at
+      INSERT INTO "Shop" (
+        "id",
+        "name",
+        "createdAt",
+        "updatedAt"
       )
-      VALUES ($1, $2, $3, $4, 'WANT', NOW(), NOW())
+      VALUES ($1, $2, NOW(), NOW())
       `,
-            [shopId, name, memo || null, userId]
+            [shopId, name]
+        )
+
+        await client.query(
+            `
+      INSERT INTO "UserShop" (
+        "id",
+        "shopId",
+        "userId",
+        "status",
+        "memo",
+        "createdAt",
+        "updatedAt"
+      )
+      VALUES ($1, $2, $3, 'WANT', $4, NOW(), NOW())
+      `,
+            [randomUUID(), shopId, userId, memo || null]
         )
 
         // 5. tags をカンマ区切りで split
@@ -63,7 +76,7 @@ export async function createShop(formData: FormData) {
             for (const tagName of tags) {
                 // 既に存在するか SELECT
                 const tagRes = await client.query(
-                    'SELECT id FROM tags WHERE name = $1 LIMIT 1',
+                    'SELECT "id" FROM "Tag" WHERE "name" = $1 LIMIT 1',
                     [tagName]
                 )
 
@@ -72,17 +85,17 @@ export async function createShop(formData: FormData) {
                 if (tagRes.rows.length > 0) {
                     tagId = tagRes.rows[0].id
                 } else {
-                    // なければ INSERT INTO tags
+                    // なければ INSERT INTO "Tag"
                     tagId = randomUUID()
                     await client.query(
-                        'INSERT INTO tags (id, name, created_at, updated_at) VALUES ($1, $2, NOW(), NOW())',
+                        'INSERT INTO "Tag" ("id", "name", "createdAt", "updatedAt") VALUES ($1, $2, NOW(), NOW())',
                         [tagId, tagName]
                     )
                 }
 
-                // shop_tags に INSERT
+                // "ShopTag" に INSERT
                 await client.query(
-                    'INSERT INTO shop_tags (id, shop_id, tag_id, created_at, updated_at) VALUES ($1, $2, $3, NOW(), NOW())',
+                    'INSERT INTO "ShopTag" ("id", "shopId", "tagId", "createdAt", "updatedAt") VALUES ($1, $2, $3, NOW(), NOW())',
                     [randomUUID(), shopId, tagId]
                 )
             }
@@ -106,15 +119,15 @@ export async function createShop(formData: FormData) {
                     const arrayBuffer = await photo.arrayBuffer()
                     await writeFile(filepath, Buffer.from(arrayBuffer))
 
-                    // 保存パスを image_url として shop_photos に INSERT
+                    // 保存パスを image_url として "ShopPhoto" に INSERT
                     const imageUrl = `/uploads/${filename}`
 
                     await client.query(
                         `
-            INSERT INTO shop_photos (id, shop_id, image_url, created_at, updated_at)
-            VALUES ($1, $2, $3, NOW(), NOW())
+            INSERT INTO "ShopPhoto" ("id", "shopId", "userId", "imageUrl", "createdAt")
+            VALUES ($1, $2, $3, $4, NOW())
             `,
-                        [randomUUID(), shopId, imageUrl]
+                        [randomUUID(), shopId, userId, imageUrl]
                     )
                 }
             }
@@ -128,6 +141,6 @@ export async function createShop(formData: FormData) {
         client.release()
     }
 
-    // 10. redirect('/want')
-    redirect('/want')
+    // 10. 全ての処理が成功したら、お店一覧（/shops）へリダイレクトする
+    redirect('/shops')
 }

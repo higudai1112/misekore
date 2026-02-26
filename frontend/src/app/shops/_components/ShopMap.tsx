@@ -1,5 +1,7 @@
 'use client'
 
+// お店の位置情報（緯度経度）および住所を表示するコンポーネント
+// ※現在は仮の実装としてテキスト表示のみだが、将来的にはGoogle Mapsなどを組み込む想定
 export function ShopMap({
   lat,
   lng,
@@ -9,6 +11,7 @@ export function ShopMap({
   lng: number | null
   address: string | null
 }) {
+  // 緯度と経度の両方が存在するかどうかを判定
   const hasLocation = lat != null && lng != null
 
   return (

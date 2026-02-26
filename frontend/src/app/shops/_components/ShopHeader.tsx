@@ -11,12 +11,14 @@ export default function ShopHeader({ shopId }: ShopHeaderProps) {
 
   return (
     <header className="flex items-center justify-between p-4">
-      <button onClick={() => router.push('/want')}>← 戻る</button>
+      {/* 戻るボタン。/shopsの一覧画面へ遷移する */}
+      <button onClick={() => router.push('/shops')}>← 戻る</button>
 
+      {/* 編集ボタン（現在は未実装のためdisabledとなっている） */}
       <button
         disabled
         className="text-muted-foreground"
-        title={`shopId: ${shopId}`} // 今は未使用だが将来用
+        title={`shopId: ${shopId}`} // 開発時のデバッグ用にshopIdをtitle属性に設定
       >
         編集
       </button>

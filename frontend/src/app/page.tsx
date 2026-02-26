@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
+// アプリ起動直後に表示されるトップページ（タイトルとログイン/登録への動線を持つ）
 export default function TitlePage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-4 sm:px-6">
@@ -18,7 +19,7 @@ export default function TitlePage() {
           行く店、即答できる。
         </p>
 
-        {/* ボタン */}
+        {/* アカウント登録画面、ログイン画面へのリンクボタン */}
         <div className="flex flex-col gap-3 sm:gap-4">
           <Link href="/signup" className="w-full">
             <Button size="lg" className="w-full">

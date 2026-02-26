@@ -16,6 +16,8 @@ import {
 import { cn } from '@/lib/utils'
 import { Label } from '@/components/ui/label'
 
+// react-hook-form をラップしたフォームコンポーネント群
+
 const Form = FormProvider
 
 type FormFieldContextValue<
@@ -29,6 +31,7 @@ const FormFieldContext = React.createContext<FormFieldContextValue>(
   {} as FormFieldContextValue,
 )
 
+// 個別のフォームフィールド（入力項目）を定義
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -37,6 +40,7 @@ const FormField = <
 }: ControllerProps<TFieldValues, TName>) => {
   return (
     <FormFieldContext.Provider value={{ name: props.name }}>
+      {/* Controller により、入力値の変更やバリデーション状態が自動管理される */}
       <Controller {...props} />
     </FormFieldContext.Provider>
   )
@@ -73,6 +77,7 @@ const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue,
 )
 
+// フォームの各入力項目全体を囲むコンポーネント（余白等のスタイル用）
 function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
   const id = React.useId()
 
@@ -87,6 +92,7 @@ function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
   )
 }
 
+// フォーム項目のラベル
 function FormLabel({
   className,
   ...props
@@ -97,7 +103,7 @@ function FormLabel({
     <Label
       data-slot="form-label"
       data-error={!!error}
-      className={cn('data-[error=true]:text-destructive', className)}
+      className={cn('data-[error=true]:text-destructive', className)} // エラー時は赤色にする
       htmlFor={formItemId}
       {...props}
     />
@@ -135,6 +141,7 @@ function FormDescription({ className, ...props }: React.ComponentProps<'p'>) {
   )
 }
 
+// バリデーションエラーメッセージの表示領域
 function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
   const { error, formMessageId } = useFormField()
   const body = error ? String(error?.message ?? '') : props.children
@@ -147,7 +154,7 @@ function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
     <p
       data-slot="form-message"
       id={formMessageId}
-      className={cn('text-destructive text-sm', className)}
+      className={cn('text-destructive text-sm', className)} // エラーメッセージは赤色で表示
       {...props}
     >
       {body}

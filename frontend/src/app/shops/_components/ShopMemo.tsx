@@ -1,4 +1,6 @@
+// お店に関するユーザーの個人的なメモを表示するコンポーネント
 export function ShopMemo({ memo }: { memo: string | null }) {
+  // メモが登録されていない場合は何も表示しない
   if (!memo) return null
 
   return (

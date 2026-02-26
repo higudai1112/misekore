@@ -7,12 +7,16 @@ import { XIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
+// Radix UI をベースにしたダイアログ（モーダル）コンポーネント群
+
+// ダイアログのルート（全体を囲むコンポーネント）
 function Dialog({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Root>) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
+// ダイアログを開くためのトリガーボタン
 function DialogTrigger({
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
@@ -31,6 +35,7 @@ function DialogClose({
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
+// ダイアログの背景（暗くなる部分）
 function DialogOverlay({
   className,
   ...props
@@ -47,6 +52,7 @@ function DialogOverlay({
   )
 }
 
+// ダイアログのメインコンテンツ領域（白いモーダル部分）
 function DialogContent({
   className,
   children,

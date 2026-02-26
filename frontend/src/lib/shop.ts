@@ -2,7 +2,7 @@ import { query } from '@/lib/db.server'
 import type { QueryResultRow } from 'pg'
 import type { ShopStatus } from '@/types/shop'
 
-// 店舗詳細をDBから取得
+// 各店舗の詳細画面で表示するための情報をDBから取得する処理
 type ShopDetailRow = QueryResultRow & {
   id: string
   name: string
@@ -19,9 +19,11 @@ type ShopPhotoRow = QueryResultRow & {
   imageUrl: string
 }
 
+// お店の詳細情報（画像やステータスを含む）を取得する関数
 export async function getShopDetail(id: string) {
-  const userId = 'user-1'
+  const userId = 'user-1' // TODO: 今後、認証情報から取得するように変更する
 
+  // お店の基本情報とユーザーごとのステータス（行った/行きたい等）、メモを取得
   const shops = await query<ShopDetailRow>(
     `
     SELECT
@@ -43,6 +45,7 @@ export async function getShopDetail(id: string) {
 
   if (!shops[0]) return null
 
+  // お店に関連づけられている写真のURL一覧を取得
   const photos = await query<ShopPhotoRow>(
     `
     SELECT
@@ -55,17 +58,34 @@ export async function getShopDetail(id: string) {
     [id, userId]
   )
 
+  // お店に関連づけられているタグ一覧を取得
+  const tags = await query<{ id: string; name: string }>(
+    `
+    SELECT
+      t."id",
+      t."name"
+    FROM "Tag" t
+    JOIN "ShopTag" st ON st."tagId" = t."id"
+    WHERE st."shopId" = $1
+    `,
+    [id]
+  )
+
+  // 取得したお店情報と写真情報を結合して返す
   return {
     ...shops[0],
     photos: photos.map((p) => ({
       id: p.id,
       url: p.imageUrl,
     })),
-    tags: [],
+    tags: tags.map((t) => ({
+      id: t.id,
+      name: t.name,
+    })),
   }
 }
 
-// want一覧に各店舗を表示するためにDBから取得
+// お店一覧（/shops）ページに表示するための「行きたい」「行った」お店の型
 type WantShopRow = QueryResultRow & {
   id: string
   name: string
@@ -73,8 +93,9 @@ type WantShopRow = QueryResultRow & {
   status: ShopStatus
 }
 
-export async function getWantShops() {
-  const userId = 'user-1'
+// ログインユーザーのお店の内、ステータスが WANT または VISITED のものを一覧で取得する関数
+export async function getAllShopsForList() {
+  const userId = 'user-1' // TODO: 今後、認証情報から取得するように変更する
 
   const rows = await query<any>(
     `
@@ -86,7 +107,7 @@ export async function getWantShops() {
     FROM "Shop" s
     JOIN "UserShop" us ON us."shopId" = s."id"
     WHERE us."userId" = $1
-      AND us."status" = 'WANT'
+      AND us."status" IN ('WANT', 'VISITED')
     ORDER BY us."updatedAt" DESC
     `,
     [userId]
@@ -95,7 +116,7 @@ export async function getWantShops() {
   return rows
 }
 
-// favorite一覧に各店舗を表示するためにDBから取得
+// お気に入り一覧（/favorite）ページに表示するための型
 type FavoriteShopRow = QueryResultRow & {
   id: string
   name: string
