@@ -8,7 +8,7 @@ export type Restaurant = {
   id: string
   name: string
   walk: string
-  tags: string[]
+  tags?: string[]
   imageURL?: string
   status: 'want' | 'visited' | 'favorite'
 }
@@ -17,6 +17,12 @@ export type Restaurant = {
 export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
   // そのお店のステータスが「行った（visited）」かどうかを判定
   const isVisited = restaurant.status === 'visited'
+
+  const visibleTags = restaurant.tags?.slice(0, 2) ?? []
+  const remainingCount =
+    restaurant.tags && restaurant.tags.length > 2
+      ? restaurant.tags.length - 2
+      : 0
 
   return (
     <Link href={`/shops/${restaurant.id}`}>
@@ -52,17 +58,25 @@ export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
             {restaurant.walk}
           </p>
 
-          {/* お店に設定されているタグをループして表示 */}
-          <div className="flex flex-wrap gap-2">
-            {restaurant.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-[#e6efe6] px-2 py-1 text-[#4f6f4f]"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
+          {/* お店に設定されているタグを最大2つまで表示 */}
+          {restaurant.tags && restaurant.tags.length > 0 && (
+            <div className="mt-2 flex items-center gap-1 overflow-hidden">
+              {visibleTags.map((tag) => (
+                <span
+                  key={tag}
+                  className="whitespace-nowrap rounded-full bg-muted px-2 py-0.5 text-[11px] text-foreground"
+                >
+                  {tag}
+                </span>
+              ))}
+
+              {remainingCount > 0 && (
+                <span className="shrink-0 text-[11px] text-muted-foreground">
+                  +{remainingCount}
+                </span>
+              )}
+            </div>
+          )}
           {/* カード右下のアイコン表示（ステータスに応じて変更） */}
           <div className="flex justify-end pt-1 text-sm sm:pt-2 sm:text-base">
             {isVisited ? (

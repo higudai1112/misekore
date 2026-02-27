@@ -4,8 +4,7 @@ import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { getFavoriteShops } from '@/lib/shop'
 import { AppLayout } from '@/components/layout/AppLayout'
-import { SegmentTabs } from '@/app/shops/_components/segment-tabs'
-import { RestaurantCard } from '@/app/shops/_components/restaurant-card'
+import { TagFilteredShopList } from '@/app/shops/_components/tag-filtered-shop-list'
 
 // お気に入り一覧ページ (Server Component)
 export default async function FavoritePage() {
@@ -22,7 +21,17 @@ export default async function FavoritePage() {
     const userId = session.user.id || 'user-1'
 
     // 4. DBから、このユーザーIDに紐づくステータス「FAVORITE」のお店のみを取得
-    const shops = await getFavoriteShops(userId)
+    const rawShops = await getFavoriteShops(userId)
+    const favoriteShops = rawShops
+        .filter((shop) => shop.status === 'FAVORITE')
+        .map((shop) => ({
+            id: shop.id,
+            name: shop.name,
+            walk: shop.address ?? '',
+            tags: shop.tags,
+            imageURL: '',
+            status: 'favorite' as const,
+        }))
 
     return (
         // <AppLayout> 内に表示
@@ -49,24 +58,8 @@ export default async function FavoritePage() {
                     </div>
 
 
-                    {/* 取得したお気に入りのお店一覧を RestaurantCard コンポーネントで表示 */}
-                    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-                        {shops
-                            .filter((shop) => shop.status === 'FAVORITE')
-                            .map((shop) => (
-                                <RestaurantCard
-                                    key={shop.id}
-                                    restaurant={{
-                                        id: shop.id,
-                                        name: shop.name,
-                                        walk: shop.address ?? '',
-                                        tags: [],
-                                        imageURL: '',
-                                        status: 'favorite',
-                                    }}
-                                />
-                            ))}
-                    </div>
+                    {/* 取得したお気に入りのお店一覧をページネーションつきで表示 */}
+                    <TagFilteredShopList shops={favoriteShops} />
                 </div>
             </main>
         </AppLayout>

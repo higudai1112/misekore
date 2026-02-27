@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { createShop } from '@/app/actions/create-shop'
+import { TagInput } from '../_components/TagInput'
 
 // お店登録ページ (Server Component)
 export default async function NewShopPage() {
@@ -38,19 +39,10 @@ export default async function NewShopPage() {
                         </div>
 
                         <div>
-                            <label htmlFor="tags" className="mb-1 block text-sm font-medium text-gray-700">
+                            <label className="mb-1 block text-sm font-medium text-gray-700">
                                 タグ
                             </label>
-                            <input
-                                type="text"
-                                id="tags"
-                                name="tags"
-                                className="w-full rounded-md border-gray-300 bg-gray-50 px-3 py-2 outline-none ring-1 ring-inset ring-gray-300 focus:bg-white focus:ring-2 focus:ring-[#8fae8f]"
-                                placeholder="例: カフェ, スイーツ, 隠れ家"
-                            />
-                            <p className="mt-1 text-xs text-gray-400">
-                                カンマ(,)区切りで複数入力できます
-                            </p>
+                            <TagInput />
                         </div>
 
                         <div>
