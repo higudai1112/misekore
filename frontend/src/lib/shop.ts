@@ -103,7 +103,16 @@ export async function getAllShopsForList() {
       s."id",
       s."name",
       s."address",
-      us."status"
+      us."status",
+      COALESCE(
+        (
+          SELECT json_agg(t."name")
+          FROM "Tag" t
+          JOIN "ShopTag" st ON st."tagId" = t."id"
+          WHERE st."shopId" = s."id"
+        ),
+        '[]'::json
+      ) as "tags"
     FROM "Shop" s
     JOIN "UserShop" us ON us."shopId" = s."id"
     WHERE us."userId" = $1
@@ -134,7 +143,16 @@ export async function getFavoriteShops(userId: string) {
       s."id",
       s."name",
       s."address",
-      us."status"
+      us."status",
+      COALESCE(
+        (
+          SELECT json_agg(t."name")
+          FROM "Tag" t
+          JOIN "ShopTag" st ON st."tagId" = t."id"
+          WHERE st."shopId" = s."id"
+        ),
+        '[]'::json
+      ) as "tags"
     FROM "Shop" s
     JOIN "UserShop" us ON us."shopId" = s."id"
     WHERE us."userId" = $1

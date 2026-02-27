@@ -63,16 +63,9 @@ export async function createShop(formData: FormData) {
             [randomUUID(), shopId, userId, memo || null]
         )
 
-        // 5. tags をカンマ区切りで split
-        const tagsString = formData.get('tags') as string
-        if (tagsString) {
-            // 6. trim() して空文字除外
-            const tags = tagsString
-                .split(',')
-                .map((t) => t.trim())
-                .filter((t) => t !== '')
-
-            // 7. 各タグについて処理
+        // 5. tags[] で取得
+        const tags = formData.getAll('tags[]') as string[]
+        if (tags && tags.length > 0) {
             for (const tagName of tags) {
                 // 既に存在するか SELECT
                 const tagRes = await client.query(

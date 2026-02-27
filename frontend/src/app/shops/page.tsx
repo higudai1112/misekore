@@ -33,7 +33,7 @@ export default async function ShopsPage() {
             id: s.id,
             name: s.name,
             walk: s.address ?? '',
-            tags: [],
+            tags: s.tags,
             imageURL: '',
             status: s.status.toLowerCase() as any,
           }))} />
