@@ -10,7 +10,7 @@ import { ShopStatusBadge } from '../_components/ShopStatusBadge'
 import { ShopTags } from '../_components/ShopTags'
 import { ShopMemo } from '../_components/ShopMemo'
 import { ShopVisitDate } from '../_components/ShopVisitDate'
-import { ShopMap } from '../_components/ShopMap'
+import { ShopDetailMap } from '../_components/ShopDetailMap'
 import { ShopStatusAction } from '../_components/ShopStatusAction'
 
 // URLのパスパラメータ（例: /shops/[id] の [id] 部分）を受け取る
@@ -34,7 +34,7 @@ export default async function ShopDetailPage({
       <div className="pb-40 px-4">
         <div className="mx-auto w-full max-w-2xl space-y-6">
 
-          <ShopHeader shopId={shop.id} />
+          <ShopHeader shop={shop} />
 
           {/* 写真 */}
           <div className="overflow-hidden rounded-2xl shadow-sm">
@@ -71,13 +71,20 @@ export default async function ShopDetailPage({
           )}
 
           {/* 地図 */}
-          <div className="rounded-xl bg-card p-4 shadow-sm space-y-4">
-            <ShopMap
-              lat={shop.lat}
-              lng={shop.lng}
-              address={shop.address}
-            />
-          </div>
+          {(shop.lat != null && shop.lng != null) || shop.address ? (
+            <div className="rounded-xl bg-card p-4 shadow-sm space-y-4">
+              {shop.lat != null && shop.lng != null && (
+                <ShopDetailMap
+                  latitude={shop.lat}
+                  longitude={shop.lng}
+                  shopName={shop.name}
+                />
+              )}
+              {shop.address && (
+                <p className="text-sm text-gray-600">{shop.address}</p>
+              )}
+            </div>
+          ) : null}
         </div>
 
         {/* 画面下部に固定表示するステータス変更用のアクションバー */}
