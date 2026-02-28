@@ -10,6 +10,7 @@ type ShopDetailRow = QueryResultRow & {
   lat: number | null
   lng: number | null
   status: ShopStatus
+  rating: number | null
   memo: string | null
   visitedAt: Date | null
 }
@@ -33,6 +34,7 @@ export async function getShopDetail(id: string) {
       s."lat",
       s."lng",
       us."status",
+      us."rating",
       us."memo",
       us."visitedAt"
     FROM "Shop" s

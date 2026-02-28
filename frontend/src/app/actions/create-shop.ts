@@ -24,8 +24,13 @@ export async function createShop(formData: FormData) {
 
     const memo = formData.get('memo') as string
 
-    // 3. shop_id を randomUUID() で一意のIDとして生成
-    const shopId = randomUUID()
+    // 新しく追加されたプレイス情報
+    const placeId = formData.get('placeId') as string | null
+    const address = formData.get('address') as string | null
+    const latStr = formData.get('lat') as string | null
+    const lngStr = formData.get('lng') as string | null
+    const lat = latStr ? parseFloat(latStr) : null
+    const lng = lngStr ? parseFloat(lngStr) : null
 
     // トランザクションのために必要な client 接続を取得
     const client = await pool.connect()
@@ -33,20 +38,45 @@ export async function createShop(formData: FormData) {
     try {
         await client.query('BEGIN')
 
-        // 4. "Shop" と "UserShop" に INSERT
-        await client.query(
-            `
-      INSERT INTO "Shop" (
-        "id",
-        "name",
-        "createdAt",
-        "updatedAt"
-      )
-      VALUES ($1, $2, NOW(), NOW())
-      `,
-            [shopId, name]
-        )
+        // 3. shop_id の決定 (既存があれば再利用、なければ新規作成)
+        let finalShopId: string
 
+        if (placeId) {
+            // placeId が指定された場合、既存の Shop を検索
+            const existingRes = await client.query(
+                `SELECT "id" FROM "Shop" WHERE "placeId" = $1 LIMIT 1`,
+                [placeId]
+            )
+
+            if (existingRes.rows.length > 0) {
+                // 既存の店舗を使い回す
+                finalShopId = existingRes.rows[0].id
+            } else {
+                // placeIdありで新規店舗作成
+                finalShopId = randomUUID()
+                await client.query(
+                    `
+                    INSERT INTO "Shop" (
+                        "id", "name", "address", "lat", "lng", "placeId", "createdAt", "updatedAt"
+                    ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+                    `,
+                    [finalShopId, name, address, lat, lng, placeId]
+                )
+            }
+        } else {
+            // placeIdなし（手入力など）の場合
+            finalShopId = randomUUID()
+            await client.query(
+                `
+                INSERT INTO "Shop" (
+                    "id", "name", "address", "lat", "lng", "placeId", "createdAt", "updatedAt"
+                ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+                `,
+                [finalShopId, name, address, lat, lng, null]
+            )
+        }
+
+        // 4. "UserShop" に INSERT
         await client.query(
             `
       INSERT INTO "UserShop" (
@@ -60,7 +90,7 @@ export async function createShop(formData: FormData) {
       )
       VALUES ($1, $2, $3, 'WANT', $4, NOW(), NOW())
       `,
-            [randomUUID(), shopId, userId, memo || null]
+            [randomUUID(), finalShopId, userId, memo || null]
         )
 
         // 5. tags[] で取得
@@ -89,7 +119,7 @@ export async function createShop(formData: FormData) {
                 // "ShopTag" に INSERT
                 await client.query(
                     'INSERT INTO "ShopTag" ("id", "shopId", "tagId", "createdAt", "updatedAt") VALUES ($1, $2, $3, NOW(), NOW())',
-                    [randomUUID(), shopId, tagId]
+                    [randomUUID(), finalShopId, tagId]
                 )
             }
         }
@@ -120,7 +150,7 @@ export async function createShop(formData: FormData) {
             INSERT INTO "ShopPhoto" ("id", "shopId", "userId", "imageUrl", "createdAt")
             VALUES ($1, $2, $3, $4, NOW())
             `,
-                        [randomUUID(), shopId, userId, imageUrl]
+                        [randomUUID(), finalShopId, userId, imageUrl]
                     )
                 }
             }

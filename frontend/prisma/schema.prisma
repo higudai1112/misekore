@@ -47,11 +47,15 @@ model Shop {
   address   String?
   lat       Float?
   lng       Float?
+  placeId   String?
+  source    String       @default("google")
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 
   userShops  UserShop[]
   shopPhotos ShopPhoto[]
+
+  @@index([placeId])
 }
 
 model UserShop {
@@ -60,6 +64,7 @@ model UserShop {
   shopId    String
   status    ShopStatus
   memo      String?
+  rating    Int?
   visitedAt DateTime?
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
