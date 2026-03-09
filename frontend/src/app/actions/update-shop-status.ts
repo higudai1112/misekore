@@ -1,6 +1,7 @@
 'use server'
 
-import { query } from '@/lib/db.server'
+import { prisma } from '@/lib/prisma'
+import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import type { ShopStatus } from '@/types/shop'
 
@@ -9,26 +10,18 @@ export async function updateShopStatus(
   shopId: string,
   status: ShopStatus
 ): Promise<void> {
-  const userId = 'user-1' // TODO: 認証機能実装後は auth() から実際のユーザーIDを取得する
+  const session = await auth()
+  if (!session?.user?.id) throw new Error('Unauthorized')
+  const userId = session.user.id
 
-  await query(
-    `
-    UPDATE "UserShop"
-    SET
-      "status" = $1::"ShopStatus",
-      "visitedAt" =
-        CASE
-          WHEN $2 = 'VISITED' OR $2 = 'FAVORITE'
-          THEN NOW()
-          ELSE NULL
-        END,
-      "updatedAt" = NOW()
-    WHERE "shopId" = $3
-      AND "userId" = $4
-    `,
-    [status, status, shopId, userId]
-  )
+  await prisma.userShop.update({
+    where: { userId_shopId: { userId, shopId } },
+    data: {
+      status,
+      // VISITED または FAVORITE の場合は訪問日時を現在時刻にセット、WANT に戻す場合はクリア
+      visitedAt: status === 'VISITED' || status === 'FAVORITE' ? new Date() : null,
+    },
+  })
 
-  // DB更新後、指定したパスのキャッシュを破棄して最新のデータを画面に反映させる
   revalidatePath(`/shops/${shopId}`)
 }

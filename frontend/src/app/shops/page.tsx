@@ -1,12 +1,17 @@
 export const dynamic = 'force-dynamic'
 
+import { redirect } from 'next/navigation'
+import { auth } from '@/lib/auth'
 import { ShopList } from './_components/shop-list'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { getAllShopsForList } from '@/lib/shop'
 
 export default async function ShopsPage() {
-  // サーバーサイドでDBから「行きたい」「行った」お店の一覧を取得
-  const shops = await getAllShopsForList()
+  const session = await auth()
+  if (!session?.user?.id) redirect('/')
+
+  // 認証済みユーザーの ID を渡してお店一覧を取得
+  const shops = await getAllShopsForList(session.user.id)
 
   return (
     <AppLayout>
@@ -29,13 +34,13 @@ export default async function ShopsPage() {
           </div>
 
           {/* タブとお店カード一覧 */}
-          <ShopList shops={shops.map(s => ({
+          <ShopList shops={shops.map((s) => ({
             id: s.id,
             name: s.name,
             walk: s.address ?? '',
             tags: s.tags,
             imageURL: '',
-            status: s.status.toLowerCase() as any,
+            status: s.status.toLowerCase() as 'want' | 'visited' | 'favorite',
           }))} />
         </div>
       </main>

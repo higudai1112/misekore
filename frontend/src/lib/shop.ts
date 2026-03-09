@@ -1,168 +1,89 @@
-import { query } from '@/lib/db.server'
-import type { QueryResultRow } from 'pg'
-import type { ShopStatus } from '@/types/shop'
+import { prisma } from '@/lib/prisma'
 
-// 各店舗の詳細画面で表示するための情報をDBから取得する処理
-type ShopDetailRow = QueryResultRow & {
-  id: string
-  name: string
-  address: string | null
-  lat: number | null
-  lng: number | null
-  status: ShopStatus
-  rating: number | null
-  memo: string | null
-  visitedAt: Date | null
-}
+// お店詳細ページで表示するデータを取得する
+// userId を引数で受け取ることで user-1 ハードコードを排除
+export async function getShopDetail(id: string, userId: string) {
+  const userShop = await prisma.userShop.findUnique({
+    where: { userId_shopId: { userId, shopId: id } },
+    include: {
+      shop: {
+        include: {
+          shopPhotos: { where: { userId } },
+          shopTags: { include: { tag: true } },
+        },
+      },
+    },
+  })
 
-type ShopPhotoRow = QueryResultRow & {
-  id: string
-  imageUrl: string
-}
+  if (!userShop) return null
 
-// お店の詳細情報（画像やステータスを含む）を取得する関数
-export async function getShopDetail(id: string) {
-  const userId = 'user-1' // TODO: 今後、認証情報から取得するように変更する
-
-  // お店の基本情報とユーザーごとのステータス（行った/行きたい等）、メモを取得
-  const shops = await query<ShopDetailRow>(
-    `
-    SELECT
-      s."id",
-      s."name",
-      s."address",
-      s."lat",
-      s."lng",
-      us."status",
-      us."rating",
-      us."memo",
-      us."visitedAt"
-    FROM "Shop" s
-    JOIN "UserShop" us ON us."shopId" = s."id"
-    WHERE s."id" = $1
-      AND us."userId" = $2
-    `,
-    [id, userId]
-  )
-
-  if (!shops[0]) return null
-
-  // お店に関連づけられている写真のURL一覧を取得
-  const photos = await query<ShopPhotoRow>(
-    `
-    SELECT
-      "id",
-      "imageUrl"
-    FROM "ShopPhoto"
-    WHERE "shopId" = $1
-      AND "userId" = $2
-    `,
-    [id, userId]
-  )
-
-  // お店に関連づけられているタグ一覧を取得
-  const tags = await query<{ id: string; name: string }>(
-    `
-    SELECT
-      t."id",
-      t."name"
-    FROM "Tag" t
-    JOIN "ShopTag" st ON st."tagId" = t."id"
-    WHERE st."shopId" = $1
-    `,
-    [id]
-  )
-
-  // 取得したお店情報と写真情報を結合して返す
   return {
-    ...shops[0],
-    photos: photos.map((p) => ({
+    id: userShop.shop.id,
+    name: userShop.shop.name,
+    address: userShop.shop.address,
+    lat: userShop.shop.lat,
+    lng: userShop.shop.lng,
+    status: userShop.status,
+    rating: userShop.rating,
+    memo: userShop.memo,
+    visitedAt: userShop.visitedAt,
+    photos: userShop.shop.shopPhotos.map((p) => ({
       id: p.id,
       url: p.imageUrl,
     })),
-    tags: tags.map((t) => ({
-      id: t.id,
-      name: t.name,
+    tags: userShop.shop.shopTags.map((st) => ({
+      id: st.tag.id,
+      name: st.tag.name,
     })),
   }
 }
 
-// お店一覧（/shops）ページに表示するための「行きたい」「行った」お店の型
-type WantShopRow = QueryResultRow & {
-  id: string
-  name: string
-  address: string | null
-  status: ShopStatus
+// お店一覧（/shops）に表示する WANT / VISITED のお店を取得する
+// userId を引数で受け取ることで user-1 ハードコードを排除
+export async function getAllShopsForList(userId: string) {
+  const userShops = await prisma.userShop.findMany({
+    where: {
+      userId,
+      status: { in: ['WANT', 'VISITED'] },
+    },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      shop: {
+        include: {
+          shopTags: { include: { tag: true } },
+        },
+      },
+    },
+  })
+
+  return userShops.map((us) => ({
+    id: us.shop.id,
+    name: us.shop.name,
+    address: us.shop.address,
+    status: us.status,
+    tags: us.shop.shopTags.map((st) => st.tag.name),
+  }))
 }
 
-// ログインユーザーのお店の内、ステータスが WANT または VISITED のものを一覧で取得する関数
-export async function getAllShopsForList() {
-  const userId = 'user-1' // TODO: 今後、認証情報から取得するように変更する
-
-  const rows = await query<any>(
-    `
-    SELECT
-      s."id",
-      s."name",
-      s."address",
-      us."status",
-      COALESCE(
-        (
-          SELECT json_agg(t."name")
-          FROM "Tag" t
-          JOIN "ShopTag" st ON st."tagId" = t."id"
-          WHERE st."shopId" = s."id"
-        ),
-        '[]'::json
-      ) as "tags"
-    FROM "Shop" s
-    JOIN "UserShop" us ON us."shopId" = s."id"
-    WHERE us."userId" = $1
-      AND us."status" IN ('WANT', 'VISITED')
-    ORDER BY us."updatedAt" DESC
-    `,
-    [userId]
-  )
-
-  return rows
-}
-
-// お気に入り一覧（/favorite）ページに表示するための型
-type FavoriteShopRow = QueryResultRow & {
-  id: string
-  name: string
-  address: string | null
-  status: ShopStatus
-}
-
-// ユーザーIDに紐づいて、ステータスが「FAVORITE」の店舗を取得する処理
+// お気に入り一覧（/favorite）に表示する FAVORITE のお店を取得する
 export async function getFavoriteShops(userId: string) {
-  // Prismaを利用した実装が指定されていましたが、既存のqueryベースの実装・設計を壊さず
-  // 型エラーが出ないようにするため、同じくpg queryで取得する形に調整して実装しています
-  const rows = await query<FavoriteShopRow>(
-    `
-    SELECT
-      s."id",
-      s."name",
-      s."address",
-      us."status",
-      COALESCE(
-        (
-          SELECT json_agg(t."name")
-          FROM "Tag" t
-          JOIN "ShopTag" st ON st."tagId" = t."id"
-          WHERE st."shopId" = s."id"
-        ),
-        '[]'::json
-      ) as "tags"
-    FROM "Shop" s
-    JOIN "UserShop" us ON us."shopId" = s."id"
-    WHERE us."userId" = $1
-      AND us."status" = 'FAVORITE'
-    ORDER BY us."updatedAt" DESC
-    `,
-    [userId]
-  )
+  const userShops = await prisma.userShop.findMany({
+    where: { userId, status: 'FAVORITE' },
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      shop: {
+        include: {
+          shopTags: { include: { tag: true } },
+        },
+      },
+    },
+  })
 
-  return rows
+  return userShops.map((us) => ({
+    id: us.shop.id,
+    name: us.shop.name,
+    address: us.shop.address,
+    status: us.status,
+    tags: us.shop.shopTags.map((st) => st.tag.name),
+  }))
 }

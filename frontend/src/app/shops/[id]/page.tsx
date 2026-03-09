@@ -1,7 +1,8 @@
 export const dynamic = 'force-dynamic'
 
 import { AppLayout } from '@/components/layout/AppLayout'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
+import { auth } from '@/lib/auth'
 import { getShopDetail } from '@/lib/shop'
 
 import ShopHeader from '../_components/ShopHeader'
@@ -19,9 +20,12 @@ export default async function ShopDetailPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  // パラメータからIDを取り出し、DBからお店の詳細情報を取得
+  const session = await auth()
+  if (!session?.user?.id) redirect('/')
+
   const { id } = await params
-  const shop = await getShopDetail(id)
+  // 認証済みユーザーの ID を渡してお店の詳細情報を取得
+  const shop = await getShopDetail(id, session.user.id)
 
   // お店が見つからない場合は 404 (Not Found) ページを表示
   if (!shop) {
