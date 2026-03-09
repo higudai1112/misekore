@@ -17,7 +17,7 @@ export async function GET() {
         // 1. セッション（認証情報）の取得
         // 未ログインユーザーのアクセスを防ぐための保護処理
         const session = await auth()
-        if (!session?.user) {
+        if (!session?.user?.id) {
             return NextResponse.json(
                 { error: "Unauthorized" },
                 { status: 401 }
@@ -27,16 +27,13 @@ export async function GET() {
         // ログイン中のユーザーIDを取得
         const userId = session.user.id
 
-        // TODO: ローカルテスト用のフォールバック（本番稼働時は削除・修正が必要）
-        const targetUserId = userId || "user-1"
-
         // 2. データベースから店舗情報を取得
         // ログインユーザーが登録した（"UserShop" に存在する）店舗のうち、
         // 緯度(lat)・経度(lng)がNULLではない（＝マップに表示できる）店舗のみを結合して取得
         // ※pgを使用しており、大文字小文字を区別するテーブル名・カラム名はダブルクォートで囲む
         const shops = await query<MapShopRow>(
             `
-            SELECT 
+            SELECT
                 s."id",
                 s."name",
                 s."lat",
@@ -48,7 +45,7 @@ export async function GET() {
               AND s."lat" IS NOT NULL
               AND s."lng" IS NOT NULL
             `,
-            [targetUserId] // $1 に targetUserId をバインド（SQLインジェクション対策）
+            [userId]
         )
 
         // 3. 取得したデータをJSON形式でクライアントに返却

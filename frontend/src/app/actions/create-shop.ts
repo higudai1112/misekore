@@ -10,11 +10,11 @@ import path from 'path'
 export async function createShop(formData: FormData) {
     // 1. auth() で現在のログイン状態（セッション）を確認
     const session = await auth()
-    if (!session?.user) {
+    if (!session?.user?.id) {
         throw new Error('Unauthorized')
     }
 
-    const userId = session.user.id || 'user-1'
+    const userId = session.user.id
 
     // 2. name 必須バリデーション
     const name = formData.get('name') as string

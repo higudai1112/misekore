@@ -1,12 +1,19 @@
 export const dynamic = 'force-dynamic'
 
+import { redirect } from 'next/navigation'
+import { auth } from '@/lib/auth'
 import { ShopList } from './_components/shop-list'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { getAllShopsForList } from '@/lib/shop'
 
 export default async function ShopsPage() {
+  const session = await auth()
+  if (!session?.user?.id) {
+    redirect('/')
+  }
+
   // サーバーサイドでDBから「行きたい」「行った」お店の一覧を取得
-  const shops = await getAllShopsForList()
+  const shops = await getAllShopsForList(session.user.id)
 
   return (
     <AppLayout>

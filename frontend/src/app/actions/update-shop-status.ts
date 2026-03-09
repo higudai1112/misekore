@@ -1,6 +1,7 @@
 'use server'
 
 import { query } from '@/lib/db.server'
+import { auth } from '@/lib/auth'
 import { revalidatePath } from 'next/cache'
 import type { ShopStatus } from '@/types/shop'
 
@@ -9,7 +10,9 @@ export async function updateShopStatus(
   shopId: string,
   status: ShopStatus
 ): Promise<void> {
-  const userId = 'user-1' // TODO: 認証機能実装後は auth() から実際のユーザーIDを取得する
+  const session = await auth()
+  if (!session?.user?.id) throw new Error('Unauthorized')
+  const userId = session.user.id
 
   await query(
     `

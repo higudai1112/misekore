@@ -2,11 +2,13 @@
 
 import { revalidatePath } from 'next/cache'
 import { pool } from '@/lib/db.server'
+import { auth } from '@/lib/auth'
 import crypto from 'crypto'
 
 export async function updateShop(shopId: string, formData: FormData) {
-    // TODO: 実際の認証情報から userId を取得するように変更する
-    const userId = 'user-1'
+    const session = await auth()
+    if (!session?.user?.id) return { success: false, error: '認証が必要です' }
+    const userId = session.user.id
     const client = await pool.connect()
 
     try {

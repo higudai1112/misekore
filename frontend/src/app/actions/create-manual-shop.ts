@@ -9,11 +9,11 @@ import { revalidatePath } from 'next/cache'
 export async function createManualShop(formData: FormData) {
     // 1. セッション確認
     const session = await auth()
-    if (!session?.user) {
+    if (!session?.user?.id) {
         throw new Error('Unauthorized')
     }
 
-    const userId = session.user.id || 'user-1'
+    const userId = session.user.id
 
     // 2. バリデーション
     const name = formData.get('name') as string

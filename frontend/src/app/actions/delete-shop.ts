@@ -7,11 +7,11 @@ import { revalidatePath } from 'next/cache'
 
 export async function deleteShop(shopId: string) {
     const session = await auth()
-    if (!session?.user) {
+    if (!session?.user?.id) {
         throw new Error('Unauthorized')
     }
 
-    const userId = session.user.id || 'user-1'
+    const userId = session.user.id
     const client = await pool.connect()
 
     try {

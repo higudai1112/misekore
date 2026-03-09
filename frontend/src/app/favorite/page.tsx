@@ -12,13 +12,12 @@ export default async function FavoritePage() {
     const session = await auth()
 
     // 2. ログインしていない場合はトップページ ( / ) にリダイレクトしてアクセスを防ぐ
-    if (!session?.user) {
+    if (!session?.user?.id) {
         redirect('/')
     }
 
-    // 3. 既存のセッション(jwt)にidが含まれていない場合のフォールバック処理
-    // （本来は再ログインが必要だが、暫定的に'user-1'とするフォールバックを入れている）
-    const userId = session.user.id || 'user-1'
+    // 3. セッションからユーザーIDを取得
+    const userId = session.user.id
 
     // 4. DBから、このユーザーIDに紐づくステータス「FAVORITE」のお店のみを取得
     const rawShops = await getFavoriteShops(userId)

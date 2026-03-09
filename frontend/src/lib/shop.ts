@@ -21,8 +21,7 @@ type ShopPhotoRow = QueryResultRow & {
 }
 
 // お店の詳細情報（画像やステータスを含む）を取得する関数
-export async function getShopDetail(id: string) {
-  const userId = 'user-1' // TODO: 今後、認証情報から取得するように変更する
+export async function getShopDetail(id: string, userId: string) {
 
   // お店の基本情報とユーザーごとのステータス（行った/行きたい等）、メモを取得
   const shops = await query<ShopDetailRow>(
@@ -96,8 +95,7 @@ type WantShopRow = QueryResultRow & {
 }
 
 // ログインユーザーのお店の内、ステータスが WANT または VISITED のものを一覧で取得する関数
-export async function getAllShopsForList() {
-  const userId = 'user-1' // TODO: 今後、認証情報から取得するように変更する
+export async function getAllShopsForList(userId: string) {
 
   const rows = await query<any>(
     `
