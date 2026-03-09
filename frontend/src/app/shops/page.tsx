@@ -8,11 +8,9 @@ import { getAllShopsForList } from '@/lib/shop'
 
 export default async function ShopsPage() {
   const session = await auth()
-  if (!session?.user?.id) {
-    redirect('/')
-  }
+  if (!session?.user?.id) redirect('/')
 
-  // サーバーサイドでDBから「行きたい」「行った」お店の一覧を取得
+  // 認証済みユーザーの ID を渡してお店一覧を取得
   const shops = await getAllShopsForList(session.user.id)
 
   return (
@@ -36,13 +34,13 @@ export default async function ShopsPage() {
           </div>
 
           {/* タブとお店カード一覧 */}
-          <ShopList shops={shops.map(s => ({
+          <ShopList shops={shops.map((s) => ({
             id: s.id,
             name: s.name,
             walk: s.address ?? '',
             tags: s.tags,
             imageURL: '',
-            status: s.status.toLowerCase() as any,
+            status: s.status.toLowerCase() as 'want' | 'visited' | 'favorite',
           }))} />
         </div>
       </main>

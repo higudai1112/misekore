@@ -21,12 +21,10 @@ export default async function ShopDetailPage({
   params: Promise<{ id: string }>
 }) {
   const session = await auth()
-  if (!session?.user?.id) {
-    redirect('/')
-  }
+  if (!session?.user?.id) redirect('/')
 
-  // パラメータからIDを取り出し、DBからお店の詳細情報を取得
   const { id } = await params
+  // 認証済みユーザーの ID を渡してお店の詳細情報を取得
   const shop = await getShopDetail(id, session.user.id)
 
   // お店が見つからない場合は 404 (Not Found) ページを表示

@@ -8,59 +8,46 @@ import { TagFilteredShopList } from '@/app/shops/_components/tag-filtered-shop-l
 
 // お気に入り一覧ページ (Server Component)
 export default async function FavoritePage() {
-    // 1. auth() を使って現在のセッション（ログイン情報）を取得
-    const session = await auth()
+  const session = await auth()
+  if (!session?.user?.id) redirect('/')
 
-    // 2. ログインしていない場合はトップページ ( / ) にリダイレクトしてアクセスを防ぐ
-    if (!session?.user?.id) {
-        redirect('/')
-    }
+  // 認証済みユーザーの ID を渡してお気に入りのお店を取得
+  const rawShops = await getFavoriteShops(session.user.id)
+  const favoriteShops = rawShops.map((shop) => ({
+    id: shop.id,
+    name: shop.name,
+    walk: shop.address ?? '',
+    tags: shop.tags,
+    imageURL: '',
+    status: 'favorite' as const,
+  }))
 
-    // 3. セッションからユーザーIDを取得
-    const userId = session.user.id
+  return (
+    <AppLayout>
+      <main className="min-h-screen px-4 pt-6 pb-24 text-[15px] text-gray-800 sm:px-6 lg:px-10">
 
-    // 4. DBから、このユーザーIDに紐づくステータス「FAVORITE」のお店のみを取得
-    const rawShops = await getFavoriteShops(userId)
-    const favoriteShops = rawShops
-        .filter((shop) => shop.status === 'FAVORITE')
-        .map((shop) => ({
-            id: shop.id,
-            name: shop.name,
-            walk: shop.address ?? '',
-            tags: shop.tags,
-            imageURL: '',
-            status: 'favorite' as const,
-        }))
+        {/* 背景の静かな霞 */}
+        <div className="pointer-events-none fixed inset-0 -z-10">
+          <div className="absolute top-0 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[#dfe8df]/70 blur-3xl" />
+        </div>
 
-    return (
-        // <AppLayout> 内に表示
-        <AppLayout>
-            {/* shopsページと同じ余白・ページ構造にする */}
-            <main className="min-h-screen px-4 pt-6 pb-24 text-[15px] text-gray-800 sm:px-6 lg:px-10">
+        <div className="mx-auto w-full max-w-md space-y-5 sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
 
-                {/* 背景の静かな霞 (shopsページと同様) */}
-                <div className="pointer-events-none fixed inset-0 -z-10">
-                    <div className="absolute top-0 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-[#dfe8df]/70 blur-3xl" />
-                </div>
+          {/* 検索入力欄（現状は見た目のみで、今後の実装用） */}
+          <div className="rounded-full bg-white px-4 py-3 ring-1 ring-[#8fae8f]/50">
+            <div className="flex items-center gap-3 text-sm text-gray-500">
+              <span>🔍</span>
+              <input
+                placeholder="お店を検索"
+                className="w-full bg-transparent outline-none placeholder:text-gray-400"
+              />
+            </div>
+          </div>
 
-                <div className="mx-auto w-full max-w-md space-y-5 sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
-
-                    {/* 検索入力欄（現状は見た目のみで、今後の実装用） */}
-                    <div className="rounded-full bg-white px-4 py-3 ring-1 ring-[#8fae8f]/50">
-                        <div className="flex items-center gap-3 text-sm text-gray-500">
-                            <span>🔍</span>
-                            <input
-                                placeholder="お店を検索"
-                                className="w-full bg-transparent outline-none placeholder:text-gray-400"
-                            />
-                        </div>
-                    </div>
-
-
-                    {/* 取得したお気に入りのお店一覧をページネーションつきで表示 */}
-                    <TagFilteredShopList shops={favoriteShops} />
-                </div>
-            </main>
-        </AppLayout>
-    )
+          {/* お気に入りのお店一覧をページネーションつきで表示 */}
+          <TagFilteredShopList shops={favoriteShops} />
+        </div>
+      </main>
+    </AppLayout>
+  )
 }
