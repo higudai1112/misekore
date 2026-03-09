@@ -77,6 +77,8 @@ model ShopTag {
 
   shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
   tag  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, tagId])
 }
 
 model UserShop {
