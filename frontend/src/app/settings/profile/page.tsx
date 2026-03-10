@@ -16,7 +16,7 @@ export default async function ProfilePage() {
     const userId = session?.user?.id ?? ""
 
     const rows = await query<ProfileRow>(
-        `SELECT name FROM profiles WHERE user_id = $1`,
+        `SELECT name FROM "Profile" WHERE "userId" = $1`,
         [userId]
     )
     const currentName = rows[0]?.name ?? ""

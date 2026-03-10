@@ -14,7 +14,7 @@ export async function updateProfile(formData: FormData) {
     if (name.length > 50) return { success: false, error: '表示名は50文字以内で入力してください' }
 
     await query(
-        `UPDATE profiles SET name = $1, updated_at = NOW() WHERE user_id = $2`,
+        `UPDATE "Profile" SET name = $1, "updatedAt" = NOW() WHERE "userId" = $2`,
         [name, userId]
     )
 

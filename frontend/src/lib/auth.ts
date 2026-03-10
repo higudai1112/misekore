@@ -64,12 +64,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           const users = await query<UserRow>(
             `
             SELECT
-              id,
-              email,
-              name,
-              password_hash
-            FROM users
-            WHERE email = $1
+              u.id,
+              u.email,
+              p.name,
+              u."passwordHash" AS password_hash
+            FROM "User" u
+            LEFT JOIN "Profile" p ON p."userId" = u.id
+            WHERE u.email = $1
             LIMIT 1
             `,
             [email]

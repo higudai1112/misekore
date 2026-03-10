@@ -27,7 +27,7 @@ export async function signUp(input: SignUpInput) {
     const existingUsers = await query<UserIdRow>(
       `
       SELECT id
-      FROM users
+      FROM "User"
       WHERE email = $1
       LIMIT 1
       `,
@@ -44,30 +44,30 @@ export async function signUp(input: SignUpInput) {
     const userId = randomUUID()
     const now = new Date()
 
-    // ③ users テーブルに新しいユーザーレコードを作成
+    // ③ "User" テーブルに新しいユーザーレコードを作成
     await query(
       `
-      INSERT INTO users (
+      INSERT INTO "User" (
         id,
         email,
-        password_hash,
-        created_at,
-        updated_at
+        "passwordHash",
+        "createdAt",
+        "updatedAt"
       )
       VALUES ($1, $2, $3, $4, $5)
       `,
       [userId, email, hashedPassword, now, now]
     )
 
-    // ④ profiles テーブルにプロフィールを作成（名前は任意入力項目のため null になる場合あり）
+    // ④ "Profile" テーブルにプロフィールを作成（名前は任意入力項目のため null になる場合あり）
     await query(
       `
-      INSERT INTO profiles (
+      INSERT INTO "Profile" (
         id,
-        user_id,
+        "userId",
         name,
-        created_at,
-        updated_at
+        "createdAt",
+        "updatedAt"
       )
       VALUES ($1, $2, $3, $4, $5)
       `,

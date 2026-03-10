@@ -5,7 +5,7 @@ import { query } from '@/lib/db.server'
 import bcrypt from 'bcryptjs'
 import type { QueryResultRow } from 'pg'
 
-type UserRow = QueryResultRow & { password_hash: string }
+type UserRow = QueryResultRow & { passwordHash: string }
 
 export async function updatePassword(formData: FormData) {
     const session = await auth()
@@ -27,17 +27,17 @@ export async function updatePassword(formData: FormData) {
     }
 
     const rows = await query<UserRow>(
-        `SELECT password_hash FROM users WHERE id = $1`,
+        `SELECT "passwordHash" FROM "User" WHERE id = $1`,
         [userId]
     )
     if (!rows[0]) return { success: false, error: 'ユーザーが見つかりません' }
 
-    const isValid = await bcrypt.compare(currentPassword, rows[0].password_hash)
+    const isValid = await bcrypt.compare(currentPassword, rows[0].passwordHash)
     if (!isValid) return { success: false, error: '現在のパスワードが正しくありません' }
 
     const newHash = await bcrypt.hash(newPassword, 12)
     await query(
-        `UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`,
+        `UPDATE "User" SET "passwordHash" = $1, "updatedAt" = NOW() WHERE id = $2`,
         [newHash, userId]
     )
 
