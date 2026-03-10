@@ -1,37 +1,45 @@
+import { auth } from "@/lib/auth"
 import { SettingSection } from "@/components/settings/SettingSection"
 import { SettingItem } from "@/components/settings/SettingItem"
 import { SettingsHeader } from "@/components/settings/SettingsHeader"
+import { PasswordChangeForm } from "./_components/PasswordChangeForm"
+import { DeleteAccountButton } from "./_components/DeleteAccountButton"
 
 export const metadata = {
     title: "アカウント管理 | 店コレ",
 }
 
-/**
- * アカウント管理画面
- * パス: /settings/account
- */
-export default function AccountPage() {
+export default async function AccountPage() {
+    const session = await auth()
+    const email = session?.user?.email ?? ""
+
     return (
         <>
-            {/* 戻るボタン付きのヘッダーを表示 */}
             <SettingsHeader title="アカウント管理" />
 
             <div className="space-y-8">
                 <SettingSection title="ログイン情報">
-                    {/* メールアドレスの表示。rightContentを使用して右側にテキストを表示 */}
                     <SettingItem
                         title="メールアドレス"
                         rightContent={
-                            <span className="text-[15px] text-gray-500">test@example.com</span>
+                            <span className="text-[15px] text-gray-500">{email}</span>
                         }
                     />
-                    {/* パスワード変更へのリンク（未実装ダミー） */}
-                    <SettingItem title="パスワード変更" href="#" />
+                </SettingSection>
+
+                <SettingSection title="パスワード変更">
+                    <div className="rounded-xl border bg-white p-6 shadow-sm">
+                        <PasswordChangeForm />
+                    </div>
                 </SettingSection>
 
                 <SettingSection title="危険な操作">
-                    {/* アカウント削除機能。destructiveフラグで赤枠・赤文字にする */}
-                    <SettingItem title="アカウント削除" destructive href="#" />
+                    <div className="rounded-xl border border-red-100 bg-white p-6 shadow-sm">
+                        <p className="mb-4 text-sm text-gray-600">
+                            アカウントを削除すると、登録したすべてのお店データが失われます。この操作は取り消せません。
+                        </p>
+                        <DeleteAccountButton />
+                    </div>
                 </SettingSection>
             </div>
         </>

@@ -1,38 +1,46 @@
+import { auth } from "@/lib/auth"
+import { query } from "@/lib/db.server"
 import { SettingSection } from "@/components/settings/SettingSection"
 import { SettingsHeader } from "@/components/settings/SettingsHeader"
+import { ProfileEditForm } from "./_components/ProfileEditForm"
+import type { QueryResultRow } from "pg"
 
 export const metadata = {
     title: "プロフィール | 店コレ",
 }
 
-/**
- * プロフィール設定画面
- * パス: /settings/profile
- */
-export default function ProfilePage() {
+type ProfileRow = QueryResultRow & { name: string | null }
+
+export default async function ProfilePage() {
+    const session = await auth()
+    const userId = session?.user?.id ?? ""
+
+    const rows = await query<ProfileRow>(
+        `SELECT name FROM profiles WHERE user_id = $1`,
+        [userId]
+    )
+    const currentName = rows[0]?.name ?? ""
+
     return (
         <>
-            {/* 戻るボタン付きのヘッダーを表示 */}
             <SettingsHeader title="プロフィール" />
 
             <div className="space-y-8">
                 <SettingSection title="プロフィール情報">
-                    {/* プロフィール情報を囲むカードUI */}
                     <div className="rounded-xl border bg-white p-6 shadow-sm">
                         <div className="flex flex-col items-center gap-4">
-                            {/* アバター画像（ダミー） */}
-                            <div className="h-24 w-24 rounded-full bg-gray-200"></div>
-                            <div className="text-center">
-                                {/* ユーザー名（ダミー） */}
-                                <p className="text-lg font-bold text-gray-900">テストユーザー</p>
-                                {/* ユーザーID（ダミー） */}
-                                <p className="text-sm text-gray-500">@test_user</p>
+                            {/* アバター（将来実装） */}
+                            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#dfe8df] text-3xl font-bold text-[#8fae8f]">
+                                {currentName ? currentName.charAt(0).toUpperCase() : "?"}
                             </div>
-                            {/* プロフィール編集ボタン（未実装ダミー） */}
-                            <button className="mt-2 rounded-full bg-gray-100 px-8 py-2 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-300">
-                                編集
-                            </button>
+                            <p className="text-sm text-gray-500">{session?.user?.email}</p>
                         </div>
+                    </div>
+                </SettingSection>
+
+                <SettingSection title="表示名の変更">
+                    <div className="rounded-xl border bg-white p-6 shadow-sm">
+                        <ProfileEditForm currentName={currentName} />
                     </div>
                 </SettingSection>
             </div>
