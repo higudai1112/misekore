@@ -30,11 +30,6 @@ export default function SettingsPage() {
                     <SettingItem title="テーマ設定" href="/settings/appearance" />
                 </SettingSection>
 
-                <SettingSection title="通知">
-                    {/* 通知設定画面への遷移リンク */}
-                    <SettingItem title="通知設定" href="/settings/notifications" />
-                </SettingSection>
-
                 <SettingSection title="サポート">
                     {/* お問い合わせ画面への遷移リンク */}
                     <SettingItem title="お問い合わせ" href="/settings/contact" />
