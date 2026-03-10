@@ -40,11 +40,22 @@ export async function getShopDetail(id: string, userId: string) {
 
 // お店一覧（/shops）に表示する WANT / VISITED のお店を取得する
 // userId を引数で受け取ることで user-1 ハードコードを排除
-export async function getAllShopsForList(userId: string) {
+// query が指定された場合、お店名・住所で絞り込む
+export async function getAllShopsForList(userId: string, query?: string) {
   const userShops = await prisma.userShop.findMany({
     where: {
       userId,
       status: { in: ['WANT', 'VISITED'] },
+      ...(query
+        ? {
+            shop: {
+              OR: [
+                { name: { contains: query, mode: 'insensitive' } },
+                { address: { contains: query, mode: 'insensitive' } },
+              ],
+            },
+          }
+        : {}),
     },
     orderBy: { updatedAt: 'desc' },
     include: {

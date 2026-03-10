@@ -41,7 +41,12 @@ export default function SignupPage() {
       })
       // 成功時、signUp 側で redirect(/shops) が実行されるためここには来ない
     } catch (err) {
-      setError('登録に失敗しました。')
+      const message = err instanceof Error ? err.message : ''
+      if (message === 'USER_ALREADY_EXISTS') {
+        setError('このメールアドレスは既に登録されています')
+      } else {
+        setError('登録に失敗しました。')
+      }
     } finally {
       // 失敗時などにローディング状態を解除
       setLoading(false)

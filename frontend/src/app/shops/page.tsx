@@ -3,15 +3,23 @@ export const dynamic = 'force-dynamic'
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { ShopList } from './_components/shop-list'
+import { SearchInput } from './_components/search-input'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { getAllShopsForList } from '@/lib/shop'
 
-export default async function ShopsPage() {
-  const session = await auth()
-  if (!session?.user?.id) redirect('/')
+type Props = {
+  searchParams: Promise<{ q?: string }>
+}
 
-  // 認証済みユーザーの ID を渡してお店一覧を取得
-  const shops = await getAllShopsForList(session.user.id)
+export default async function ShopsPage({ searchParams }: Props) {
+  const session = await auth()
+  if (!session?.user?.id) redirect('/login')
+
+  const { q } = await searchParams
+  const query = q?.trim() || undefined
+
+  // 認証済みユーザーの ID を渡してお店一覧を取得（検索クエリでフィルタリング）
+  const shops = await getAllShopsForList(session.user.id, query)
 
   return (
     <AppLayout>
@@ -23,15 +31,7 @@ export default async function ShopsPage() {
 
         <div className="mx-auto w-full max-w-md space-y-5 sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
           {/* 検索欄 */}
-          <div className="rounded-full bg-white px-4 py-3 ring-1 ring-[#8fae8f]/50">
-            <div className="flex items-center gap-3 text-sm text-gray-500">
-              <span>🔍</span>
-              <input
-                placeholder="お店を検索"
-                className="w-full bg-transparent outline-none placeholder:text-gray-400"
-              />
-            </div>
-          </div>
+          <SearchInput defaultValue={q ?? ''} />
 
           {/* タブとお店カード一覧 */}
           <ShopList shops={shops.map((s) => ({
