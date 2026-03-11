@@ -1,16 +1,23 @@
 'use client'
 
+import { useActionState } from 'react'
 import { createManualShop } from '@/app/actions/create-manual-shop'
 import { TagInput } from '../../_components/TagInput'
 
 export function ManualShopForm() {
-    // フォーム送信時は Server Action (createManualShop) に直接 request を渡す
-    // React 18の useTransition を使用すると redirect 時にエラーや意図しない挙動になるためアクションのみ指定
+    const [state, formAction, isPending] = useActionState(createManualShop, null)
+
     return (
         <form
-            action={createManualShop}
+            action={formAction}
             className="space-y-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-black/5"
         >
+            {state && !state.success && (
+                <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
+                    {state.error}
+                </p>
+            )}
+
             {/* 店名 (必須) */}
             <div>
                 <label htmlFor="name" className="mb-1 block text-sm font-medium text-gray-700">
@@ -46,7 +53,6 @@ export function ManualShopForm() {
                 <label className="mb-1 block text-sm font-medium text-gray-700">
                     タグ
                 </label>
-                {/* 既存のTagInputを再利用。内部で name="tags[]" の hidden inputを生成する想定 */}
                 <TagInput />
             </div>
 
@@ -66,9 +72,10 @@ export function ManualShopForm() {
 
             <button
                 type="submit"
+                disabled={isPending}
                 className="w-full rounded-full bg-[#8fae8f] py-3 font-medium text-white transition hover:bg-[#7b997b] disabled:opacity-50"
             >
-                登録する
+                {isPending ? '登録中...' : '登録する'}
             </button>
         </form>
     )

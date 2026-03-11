@@ -34,19 +34,16 @@ export default function SignupPage() {
 
     try {
       setLoading(true)
-      // Server Actionの signUp 関数を呼び出してDBに登録＆自動ログイン
-      await signUp({
-        email,
-        password,
-      })
-      // 成功時、signUp 側で redirect(/shops) が実行されるためここには来ない
-    } catch (err) {
-      const message = err instanceof Error ? err.message : ''
-      if (message === 'USER_ALREADY_EXISTS') {
-        setError('このメールアドレスは既に登録されています')
-      } else {
-        setError('登録に失敗しました。')
+      const result = await signUp({ email, password })
+      // 成功時は signUp 内で redirect('/shops') が実行されるためここには来ない
+      // 失敗時は ActionResult が返る
+      if (!result.success) {
+        setError(result.error)
+        return
       }
+    } catch (err) {
+      // signUp が ActionResult を返すようになったため、ここに来るのはネットワーク障害等
+      setError('登録に失敗しました。')
     } finally {
       // 失敗時などにローディング状態を解除
       setLoading(false)

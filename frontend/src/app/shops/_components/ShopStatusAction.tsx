@@ -1,8 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { updateShopStatus } from '@/app/actions/update-shop-status'
 import type { ShopStatus } from '@/types/shop'
+
+const STATUS_LABELS: Record<ShopStatus, string> = {
+  WANT: '行きたい',
+  VISITED: '行った',
+  FAVORITE: 'お気に入り',
+}
 
 // お店詳細画面の下部に固定され、お店のステータス（行きたい/行った/お気に入り）を変更するアクションバー
 export function ShopStatusAction({
@@ -18,9 +25,15 @@ export function ShopStatusAction({
   // 選択された新しいステータスをDBに保存し、モーダルを閉じる
   async function handleChange(next: ShopStatus) {
     setLoading(true)
-    await updateShopStatus(shopId, next)
+    const result = await updateShopStatus(shopId, next)
     setLoading(false)
     setOpen(false)
+
+    if (result.success) {
+      toast.success(`「${STATUS_LABELS[next]}」に変更しました`)
+    } else {
+      toast.error(result.error)
+    }
   }
 
   return (

@@ -4,11 +4,15 @@ import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import type { ActionResult } from '@/lib/action-result'
 
-export async function createManualShop(formData: FormData) {
+export async function createManualShop(
+  _prevState: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
   // 認証チェック
   const session = await auth()
-  if (!session?.user?.id) throw new Error('Unauthorized')
+  if (!session?.user?.id) return { success: false, error: '認証が必要です' }
   const userId = session.user.id
 
   // バリデーション
@@ -16,8 +20,8 @@ export async function createManualShop(formData: FormData) {
   const address = formData.get('address') as string
   const memo = (formData.get('memo') as string) || null
 
-  if (!name?.trim()) throw new Error('Name is required')
-  if (!address?.trim()) throw new Error('Address is required')
+  if (!name?.trim()) return { success: false, error: '店名を入力してください' }
+  if (!address?.trim()) return { success: false, error: '住所を入力してください' }
 
   // Google Geocoding API で緯度経度を取得（失敗しても登録は続行）
   let lat: number | null = null
@@ -51,29 +55,33 @@ export async function createManualShop(formData: FormData) {
 
   const tags = formData.getAll('tags[]') as string[]
 
-  await prisma.$transaction(async (tx) => {
-    // 手動登録のため source='manual'、placeId は null
-    const shop = await tx.shop.create({
-      data: { name, address, lat, lng, source: 'manual' },
-    })
-
-    // ユーザーとお店を紐づける（初期ステータスは WANT）
-    await tx.userShop.create({
-      data: { userId, shopId: shop.id, status: 'WANT', memo },
-    })
-
-    // タグを登録（スパム防止のため最大5つまで）
-    for (const tagName of tags.slice(0, 5)) {
-      const tag = await tx.tag.upsert({
-        where: { name: tagName },
-        create: { name: tagName },
-        update: {},
+  try {
+    await prisma.$transaction(async (tx) => {
+      // 手動登録のため source='manual'、placeId は null
+      const shop = await tx.shop.create({
+        data: { name, address, lat, lng, source: 'manual' },
       })
-      await tx.shopTag.create({
-        data: { shopId: shop.id, tagId: tag.id },
+
+      // ユーザーとお店を紐づける（初期ステータスは WANT）
+      await tx.userShop.create({
+        data: { userId, shopId: shop.id, status: 'WANT', memo },
       })
-    }
-  })
+
+      // タグを登録（スパム防止のため最大5つまで）
+      for (const tagName of tags.slice(0, 5)) {
+        const tag = await tx.tag.upsert({
+          where: { name: tagName },
+          create: { name: tagName },
+          update: {},
+        })
+        await tx.shopTag.create({
+          data: { shopId: shop.id, tagId: tag.id },
+        })
+      }
+    })
+  } catch {
+    return { success: false, error: '登録に失敗しました' }
+  }
 
   revalidatePath('/shops')
   redirect('/shops')
