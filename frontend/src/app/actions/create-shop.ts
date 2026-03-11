@@ -3,9 +3,8 @@
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { writeFile, mkdir } from 'fs/promises'
 import { randomUUID } from 'crypto'
-import path from 'path'
+import { uploadToS3 } from '@/lib/storage.server'
 import type { ActionResult } from '@/lib/action-result'
 
 export async function createShop(
@@ -69,24 +68,14 @@ export async function createShop(
     return { success: false, error: '登録に失敗しました' }
   }
 
-  // 写真のアップロード（ファイルシステム操作はトランザクション外で実行）
-  // TODO: Issue #21 で S3 等のクラウドストレージへ移行予定
+  // 写真を S3 にアップロードし、公開 URL を DB に保存（トランザクション外で実行）
   const photos = formData.getAll('photos') as File[]
   if (photos.length > 0) {
-    const uploadDir = path.join(process.cwd(), 'public', 'uploads')
-    await mkdir(uploadDir, { recursive: true })
-
     for (const photo of photos) {
       if (photo.size > 0) {
-        const extension = photo.name.split('.').pop() || 'jpg'
-        const filename = `${randomUUID()}.${extension}`
-        const filepath = path.join(uploadDir, filename)
-
-        const arrayBuffer = await photo.arrayBuffer()
-        await writeFile(filepath, Buffer.from(arrayBuffer))
-
+        const imageUrl = await uploadToS3(photo)
         await prisma.shopPhoto.create({
-          data: { shopId, userId, imageUrl: `/uploads/${filename}` },
+          data: { shopId, userId, imageUrl },
         })
       }
     }
