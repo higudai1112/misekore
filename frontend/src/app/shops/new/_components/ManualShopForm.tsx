@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { createManualShop } from '@/app/actions/create-manual-shop'
 import { TagInput } from '../../_components/TagInput'
+import { StatusRadio } from './StatusRadio'
 
 export function ManualShopForm() {
     const [state, formAction, isPending] = useActionState(createManualShop, null)
@@ -54,6 +55,14 @@ export function ManualShopForm() {
                     タグ
                 </label>
                 <TagInput />
+            </div>
+
+            {/* ステータス */}
+            <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                    ステータス
+                </label>
+                <StatusRadio />
             </div>
 
             {/* メモ (任意) */}
