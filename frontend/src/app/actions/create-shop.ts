@@ -6,16 +6,20 @@ import { redirect } from 'next/navigation'
 import { writeFile, mkdir } from 'fs/promises'
 import { randomUUID } from 'crypto'
 import path from 'path'
+import type { ActionResult } from '@/lib/action-result'
 
-export async function createShop(formData: FormData) {
+export async function createShop(
+  _prevState: ActionResult | null,
+  formData: FormData
+): Promise<ActionResult> {
   // 認証チェック
   const session = await auth()
-  if (!session?.user?.id) throw new Error('Unauthorized')
+  if (!session?.user?.id) return { success: false, error: '認証が必要です' }
   const userId = session.user.id
 
   // バリデーション
   const name = formData.get('name') as string
-  if (!name?.trim()) throw new Error('Name is required')
+  if (!name?.trim()) return { success: false, error: '店名を入力してください' }
 
   const memo = (formData.get('memo') as string) || null
   const placeId = (formData.get('placeId') as string) || null
@@ -24,38 +28,46 @@ export async function createShop(formData: FormData) {
   const lng = formData.get('lng') ? parseFloat(formData.get('lng') as string) : null
   const tags = formData.getAll('tags[]') as string[]
 
-  // Shop・UserShop・Tag・ShopTag をトランザクションで登録
-  const { shopId } = await prisma.$transaction(async (tx) => {
-    // placeId が指定されていれば既存 Shop を再利用、なければ新規作成
-    let shop = placeId
-      ? await tx.shop.findFirst({ where: { placeId } })
-      : null
+  let shopId: string
 
-    if (!shop) {
-      shop = await tx.shop.create({
-        data: { name, address, lat, lng, placeId },
+  try {
+    // Shop・UserShop・Tag・ShopTag をトランザクションで登録
+    const result = await prisma.$transaction(async (tx) => {
+      // placeId が指定されていれば既存 Shop を再利用、なければ新規作成
+      let shop = placeId
+        ? await tx.shop.findFirst({ where: { placeId } })
+        : null
+
+      if (!shop) {
+        shop = await tx.shop.create({
+          data: { name, address, lat, lng, placeId },
+        })
+      }
+
+      // ユーザーとお店を紐づける（初期ステータスは WANT）
+      await tx.userShop.create({
+        data: { userId, shopId: shop.id, status: 'WANT', memo },
       })
-    }
 
-    // ユーザーとお店を紐づける（初期ステータスは WANT）
-    await tx.userShop.create({
-      data: { userId, shopId: shop.id, status: 'WANT', memo },
+      // タグを upsert して ShopTag を登録（Tag.name に @unique があるため upsert 可能）
+      for (const tagName of tags) {
+        const tag = await tx.tag.upsert({
+          where: { name: tagName },
+          create: { name: tagName },
+          update: {},
+        })
+        await tx.shopTag.create({
+          data: { shopId: shop.id, tagId: tag.id },
+        })
+      }
+
+      return { shopId: shop.id }
     })
 
-    // タグを upsert して ShopTag を登録（Tag.name に @unique があるため upsert 可能）
-    for (const tagName of tags) {
-      const tag = await tx.tag.upsert({
-        where: { name: tagName },
-        create: { name: tagName },
-        update: {},
-      })
-      await tx.shopTag.create({
-        data: { shopId: shop.id, tagId: tag.id },
-      })
-    }
-
-    return { shopId: shop.id }
-  })
+    shopId = result.shopId
+  } catch {
+    return { success: false, error: '登録に失敗しました' }
+  }
 
   // 写真のアップロード（ファイルシステム操作はトランザクション外で実行）
   // TODO: Issue #21 で S3 等のクラウドストレージへ移行予定

@@ -79,12 +79,13 @@ export function EditShopDialog({
     const handleDelete = async () => {
         if (!window.confirm('このお店を削除してもよろしいですか？')) return
         startTransition(async () => {
-            try {
-                await deleteShop(shopId)
-                // 削除後のリダイレクトやメッセージは deleteShop 内で行うか、もしくはコンポーネント側で行う
-                // deleteShop() 内部で redirect() しているため通常は遷移する
-            } catch (err) {
-                setError('削除に失敗しました')
+            const result = await deleteShop(shopId)
+            if (result.success) {
+                toast.success('お店を削除しました')
+                setIsOpen(false)
+                router.push('/shops')
+            } else {
+                toast.error(result.error)
             }
         })
     }
