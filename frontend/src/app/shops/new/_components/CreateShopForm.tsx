@@ -4,6 +4,7 @@ import { useActionState } from 'react'
 import { createShop } from '@/app/actions/create-shop'
 import { TagInput } from '../../_components/TagInput'
 import { PlaceSearchInput } from './PlaceSearchInput'
+import { StatusRadio } from './StatusRadio'
 
 export function CreateShopForm() {
     const [state, formAction, isPending] = useActionState(createShop, null)
@@ -42,6 +43,13 @@ export function CreateShopForm() {
                     multiple
                     className="w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-[#e6efe6] file:px-4 file:py-2 file:text-sm file:font-medium file:text-[#4f6f4f] hover:file:bg-[#d8e4d8]"
                 />
+            </div>
+
+            <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700">
+                    ステータス
+                </label>
+                <StatusRadio />
             </div>
 
             <div>

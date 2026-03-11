@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { randomUUID } from 'crypto'
 import { uploadToS3 } from '@/lib/storage.server'
+import type { ShopStatus } from '@/types/shop'
 import type { ActionResult } from '@/lib/action-result'
 
 export async function createShop(
@@ -21,6 +22,15 @@ export async function createShop(
   if (!name?.trim()) return { success: false, error: '店名を入力してください' }
 
   const memo = (formData.get('memo') as string) || null
+  // ステータスのバリデーション（未指定またはと不正値は WANT にフォールバック）
+  const rawStatus = formData.get('status') as string
+  const VALID_STATUSES: ShopStatus[] = ['WANT', 'VISITED', 'FAVORITE']
+  const status: ShopStatus = VALID_STATUSES.includes(rawStatus as ShopStatus)
+    ? (rawStatus as ShopStatus)
+    : 'WANT'
+  // VISITED / FAVORITE の場合は登録時点を訪問日時としてセット
+  const visitedAt = status === 'VISITED' || status === 'FAVORITE' ? new Date() : null
+
   const placeId = (formData.get('placeId') as string) || null
   const address = (formData.get('address') as string) || null
   const lat = formData.get('lat') ? parseFloat(formData.get('lat') as string) : null
@@ -43,9 +53,9 @@ export async function createShop(
         })
       }
 
-      // ユーザーとお店を紐づける（初期ステータスは WANT）
+      // ユーザーとお店を紐づける（選択されたステータスで登録、VISITED/FAVORITE は訪問日時もセット）
       await tx.userShop.create({
-        data: { userId, shopId: shop.id, status: 'WANT', memo },
+        data: { userId, shopId: shop.id, status, memo, visitedAt },
       })
 
       // タグを upsert して ShopTag を登録（Tag.name に @unique があるため upsert 可能）
