@@ -25,11 +25,6 @@ export default function SettingsPage() {
                     <SettingItem title="アカウント管理" href="/settings/account" />
                 </SettingSection>
 
-                <SettingSection title="表示設定">
-                    {/* テーマ設定画面への遷移リンク */}
-                    <SettingItem title="テーマ設定" href="/settings/appearance" />
-                </SettingSection>
-
                 <SettingSection title="サポート">
                     {/* お問い合わせ画面への遷移リンク */}
                     <SettingItem title="お問い合わせ" href="/settings/contact" />
