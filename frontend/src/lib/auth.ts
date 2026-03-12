@@ -1,9 +1,12 @@
 // auth.ts
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import Google from 'next-auth/providers/google'
+import Line from 'next-auth/providers/line'
 import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
 import { authConfig } from '@/auth.config'
-import { query } from '@/lib/db.server'
+import { query, pool } from '@/lib/db.server'
 import type { QueryResultRow } from 'pg'
 
 // データベースから取得するユーザー情報の型
@@ -11,7 +14,13 @@ type UserRow = QueryResultRow & {
   id: string
   email: string
   name: string | null
-  password_hash: string
+  password_hash: string | null
+}
+
+// Account テーブルの行型
+type AccountRow = QueryResultRow & {
+  id: string
+  userId: string
 }
 
 // NextAuthの設定本体。ミドルウェア用設定(authConfig)を拡張している
@@ -22,6 +31,87 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   callbacks: {
     ...authConfig.callbacks,
+    // OAuthログイン時にDBへユーザー情報を upsert する
+    async signIn({ user, account }) {
+      // Credentials プロバイダーの場合はスキップ（authorize() で処理済み）
+      if (!account || account.provider === 'credentials') return true
+
+      const provider = account.provider           // 'google' | 'line'
+      const providerAccountId = account.providerAccountId
+      const email = user.email
+      const name = user.name ?? null
+
+      if (!email || !providerAccountId) return false
+
+      const client = await pool.connect()
+      try {
+        await client.query('BEGIN')
+
+        // 同じ provider + providerAccountId の Account が既に存在するか確認
+        const existingAccounts = await client.query<AccountRow>(
+          `SELECT id, "userId" FROM "Account"
+           WHERE provider = $1 AND "providerAccountId" = $2
+           LIMIT 1`,
+          [provider, providerAccountId]
+        )
+
+        if (existingAccounts.rows.length > 0) {
+          // 既存アカウントあり → user.id に userId をセットして終了
+          user.id = existingAccounts.rows[0].userId
+          await client.query('COMMIT')
+          return true
+        }
+
+        // Account が存在しない場合、同メールの User を探す
+        const existingUsers = await client.query<UserRow>(
+          `SELECT id FROM "User" WHERE email = $1 LIMIT 1`,
+          [email]
+        )
+
+        let userId: string
+
+        if (existingUsers.rows.length > 0) {
+          // 同メールの User が既存 → Account を紐付けるだけ
+          userId = existingUsers.rows[0].id
+        } else {
+          // User が存在しない → User + Profile を新規作成
+          userId = randomUUID()
+          const now = new Date()
+
+          await client.query(
+            `INSERT INTO "User" (id, email, "passwordHash", "createdAt", "updatedAt")
+             VALUES ($1, $2, NULL, $3, $3)`,
+            [userId, email, now]
+          )
+
+          await client.query(
+            `INSERT INTO "Profile" (id, "userId", name, "createdAt", "updatedAt")
+             VALUES ($1, $2, $3, $4, $4)`,
+            [randomUUID(), userId, name, now]
+          )
+        }
+
+        // Account を新規作成
+        const now = new Date()
+        await client.query(
+          `INSERT INTO "Account" (id, "userId", provider, "providerAccountId", "createdAt", "updatedAt")
+           VALUES ($1, $2, $3, $4, $5, $5)`,
+          [randomUUID(), userId, provider, providerAccountId, now]
+        )
+
+        await client.query('COMMIT')
+
+        // JWT に userId をセットするため user.id に代入
+        user.id = userId
+        return true
+      } catch (error) {
+        await client.query('ROLLBACK')
+        console.error('OAuth signIn error:', error)
+        return false
+      } finally {
+        client.release()
+      }
+    },
     // トークン生成時、DBのユーザーIDをJWTトークンに含める
     jwt({ token, user }) {
       if (user) {
@@ -39,6 +129,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   },
   secret: process.env.AUTH_SECRET,
   providers: [
+    // Googleソーシャルログイン
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    // LINEソーシャルログイン
+    Line({
+      clientId: process.env.LINE_CLIENT_ID!,
+      clientSecret: process.env.LINE_CLIENT_SECRET!,
+    }),
     // メールアドレスとパスワードを使った独自のログイン処理（Credentials Provider）
     Credentials({
       name: 'Credentials',
@@ -77,7 +177,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           )
 
           const user = users[0]
-          if (!user) return null
+          // OAuthのみのユーザー（passwordHash が NULL）はCredentialsでログイン不可
+          if (!user || !user.password_hash) return null
 
           // bcryptを使って、入力されたパスワードとDBのハッシュ化されたパスワードを比較
           const isValid = await bcrypt.compare(
