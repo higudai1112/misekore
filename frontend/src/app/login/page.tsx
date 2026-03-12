@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { signIn } from 'next-auth/react'
+import Link from 'next/link'
+import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -39,6 +41,15 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-sm">
+        {/* タイトルへ戻るリンク */}
+        <Link
+          href="/"
+          className="mb-6 flex items-center gap-1 text-sm text-gray-500 transition-colors hover:text-gray-700"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          トップへ戻る
+        </Link>
+
         <h1 className="mb-6 text-center text-2xl font-bold">ログイン</h1>
 
         <form action={handleSubmit} className="space-y-4">
