@@ -78,33 +78,6 @@ export default function SignupPage() {
 
         <h1 className="mb-6 text-center text-2xl font-bold">アカウント登録</h1>
 
-        {/* ソーシャルアカウントで登録ボタン */}
-        <div className="mb-6 space-y-3">
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-          >
-            <Image src="/google_icon4.png" alt="Google" width={20} height={20} />
-            Googleで登録
-          </button>
-          <button
-            type="button"
-            onClick={handleLineSignIn}
-            className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#06C755] px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#05b34d]"
-          >
-            <Image src="/line_logo.png" alt="LINE" width={20} height={20} />
-            LINEで登録
-          </button>
-        </div>
-
-        {/* 区切り線 */}
-        <div className="mb-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-xs text-gray-400">またはメールアドレスで</span>
-          <div className="h-px flex-1 bg-gray-200" />
-        </div>
-
         <form className="space-y-4" onSubmit={handleSubmit}>
           {/* メールアドレス入力欄 */}
           <div className="space-y-1">
@@ -150,6 +123,33 @@ export default function SignupPage() {
             {loading ? '登録中...' : '登録'}
           </Button>
         </form>
+
+        {/* 区切り線 */}
+        <div className="my-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-gray-200" />
+          <span className="text-xs text-gray-400">またはSNSアカウントで</span>
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        {/* ソーシャルアカウントで登録ボタン */}
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          >
+            <Image src="/google_icon4.png" alt="Google" width={20} height={20} />
+            Googleで登録
+          </button>
+          <button
+            type="button"
+            onClick={handleLineSignIn}
+            className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#06C755] px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#05b34d]"
+          >
+            <Image src="/line_logo.png" alt="LINE" width={20} height={20} />
+            LINEで登録
+          </button>
+        </div>
       </div>
     </main>
   )
