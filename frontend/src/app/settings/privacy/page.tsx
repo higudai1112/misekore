@@ -33,10 +33,6 @@ const sections = [
         heading: "お問い合わせ",
         body: "お客様の情報の開示、情報の訂正、利用停止、削除をご希望の場合は、アプリ内の「お問い合わせ」フォームよりご連絡ください。",
     },
-    {
-        heading: "事業者情報",
-        body: "事業者の氏名: 樋口 大輔\n事業者の住所: 大阪府東大阪市善根寺町3-1-29-103",
-    },
 ]
 
 export default function PrivacyPage() {
