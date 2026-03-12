@@ -49,6 +49,11 @@ export default function LoginPage() {
     await signIn('line', { callbackUrl: '/shops' })
   }
 
+  // Apple Sign In ボタン押下時の処理
+  async function handleAppleSignIn() {
+    await signIn('apple', { callbackUrl: '/shops' })
+  }
+
   return (
     <main className="flex min-h-screen items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-sm">
@@ -80,6 +85,14 @@ export default function LoginPage() {
           >
             <Image src="/line_logo.png" alt="LINE" width={20} height={20} />
             LINEでログイン
+          </button>
+          <button
+            type="button"
+            onClick={handleAppleSignIn}
+            className="flex w-full items-center justify-center gap-3 rounded-lg bg-black px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-gray-900"
+          >
+            <Image src="/apple_logo.png" alt="Apple" width={18} height={20} />
+            Appleでログイン
           </button>
         </div>
 
