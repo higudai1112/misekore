@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 
 // アプリ起動直後に表示されるトップページ（タイトルとログイン/登録への動線を持つ）
@@ -6,10 +7,15 @@ export default function TitlePage() {
   return (
     <main className="flex min-h-screen items-center justify-center px-4 sm:px-6">
       <div className="w-full max-w-sm text-center sm:max-w-md md:max-w-lg">
-        {/* 仮ロゴ */}
-        <div className="bg-accent mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full text-3xl">
-          📍
-        </div>
+        {/* アプリアイコン */}
+        <Image
+          src="/icon.png"
+          alt="店コレ"
+          width={96}
+          height={96}
+          className="mx-auto mb-6 rounded-2xl"
+          priority
+        />
 
         {/* サービス名 */}
         <h1 className="mb-2 text-2xl font-bold sm:text-3xl">店コレ</h1>
