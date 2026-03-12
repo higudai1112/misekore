@@ -4,12 +4,11 @@ import { auth } from '@/lib/auth'
 
 export async function sendContact(formData: FormData) {
     const session = await auth()
-    const userId = session?.user?.id
-    if (!userId) return { success: false, error: '認証が必要です' }
 
     const subject = (formData.get('subject') as string | null)?.trim()
     const message = (formData.get('message') as string | null)?.trim()
-    const senderEmail = session.user?.email ?? ''
+    // 未ログインユーザーの場合は「未ログインユーザー」として送信
+    const senderEmail = session?.user?.email ?? '未ログインユーザー'
 
     if (!subject) return { success: false, error: '件名を入力してください' }
     if (!message) return { success: false, error: '内容を入力してください' }
