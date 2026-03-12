@@ -15,12 +15,24 @@ export const authConfig = {
                 nextUrl.pathname === '/login' ||
                 nextUrl.pathname === '/signup'
 
+            // 未ログインユーザーでも閲覧できる法的情報・サポートページ
+            const isOnGuestPage =
+                nextUrl.pathname === '/settings/privacy' ||
+                nextUrl.pathname === '/settings/terms' ||
+                nextUrl.pathname === '/settings/contact' ||
+                nextUrl.pathname === '/settings/contact/thanks'
+
             if (isOnPublicPage) {
                 // ログイン済みのユーザーが公開ページにアクセスした場合は、一覧（/shops）へリダイレクト
                 if (isLoggedIn) {
                     return Response.redirect(new URL('/shops', nextUrl))
                 }
                 return true // 未ログインならそのまま公開ページへアクセス可能
+            }
+
+            // 法的情報・サポートページは未ログインでもアクセス許可
+            if (isOnGuestPage) {
+                return true
             }
 
             // ログインが必要なページへのアクセスで、未ログインの場合は signIn ページ（/）へリダイレクト

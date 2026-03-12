@@ -64,7 +64,18 @@ export default function TitlePage() {
           </Link>
         </div>
 
-        {/* 法的リンク（#50で追加予定） */}
+        {/* 法的情報・サポートリンク */}
+        <div className="mt-10 flex justify-center gap-5 text-xs text-gray-400">
+          <Link href="/settings/privacy" className="hover:text-gray-600 transition-colors">
+            プライバシーポリシー
+          </Link>
+          <Link href="/settings/terms" className="hover:text-gray-600 transition-colors">
+            利用規約
+          </Link>
+          <Link href="/settings/contact" className="hover:text-gray-600 transition-colors">
+            お問い合わせ
+          </Link>
+        </div>
       </div>
     </main>
   )
