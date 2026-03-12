@@ -15,6 +15,7 @@ export default function TitlePage() {
           height={96}
           className="mx-auto mb-6 rounded-2xl"
           priority
+          unoptimized
         />
 
         {/* サービス名 */}
