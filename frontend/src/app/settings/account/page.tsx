@@ -3,6 +3,7 @@ import { SettingSection } from "@/components/settings/SettingSection"
 import { SettingItem } from "@/components/settings/SettingItem"
 import { SettingsHeader } from "@/components/settings/SettingsHeader"
 import { PasswordChangeForm } from "./_components/PasswordChangeForm"
+import { EmailChangeForm } from "./_components/EmailChangeForm"
 import { DeleteAccountButton } from "./_components/DeleteAccountButton"
 
 export const metadata = {
@@ -18,13 +19,10 @@ export default async function AccountPage() {
             <SettingsHeader title="アカウント管理" />
 
             <div className="space-y-8">
-                <SettingSection title="ログイン情報">
-                    <SettingItem
-                        title="メールアドレス"
-                        rightContent={
-                            <span className="text-[15px] text-gray-500">{email}</span>
-                        }
-                    />
+                <SettingSection title="メールアドレス変更">
+                    <div className="rounded-xl border bg-white p-6 shadow-sm">
+                        <EmailChangeForm currentEmail={email} />
+                    </div>
                 </SettingSection>
 
                 <SettingSection title="パスワード変更">
