@@ -1,21 +1,22 @@
 "use client"
 
 import { useTransition } from "react"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { sendContact } from "@/app/actions/send-contact"
 
 export function ContactForm() {
     const [isPending, startTransition] = useTransition()
+    const router = useRouter()
 
     function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
-        const form = e.currentTarget
         startTransition(async () => {
             const result = await sendContact(formData)
             if (result.success) {
-                toast.success("お問い合わせを送信しました。返信をお待ちください。")
-                form.reset()
+                // 送信成功後は感謝ページへ遷移
+                router.push("/settings/contact/thanks")
             } else {
                 toast.error(result.error ?? "送信に失敗しました")
             }
