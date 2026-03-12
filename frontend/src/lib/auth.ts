@@ -1,6 +1,7 @@
 // auth.ts
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
+import Apple from 'next-auth/providers/apple'
 import Google from 'next-auth/providers/google'
 import Line from 'next-auth/providers/line'
 import bcrypt from 'bcryptjs'
@@ -36,12 +37,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       // Credentials プロバイダーの場合はスキップ（authorize() で処理済み）
       if (!account || account.provider === 'credentials') return true
 
-      const provider = account.provider           // 'google' | 'line'
+      const provider = account.provider           // 'google' | 'line' | 'apple'
       const providerAccountId = account.providerAccountId
       const email = user.email
       const name = user.name ?? null
 
-      if (!email || !providerAccountId) return false
+      // Apple は初回ログイン時のみメールを返すため providerAccountId のみで管理
+      if (!providerAccountId) return false
+      // Apple でメールが取得できない場合（2回目以降）は Account 検索で対応
+      if (!email && provider !== 'apple') return false
 
       const client = await pool.connect()
       try {
@@ -63,32 +67,39 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         // Account が存在しない場合、同メールの User を探す
-        const existingUsers = await client.query<UserRow>(
-          `SELECT id FROM "User" WHERE email = $1 LIMIT 1`,
-          [email]
-        )
-
+        // Apple はメールが null になる場合（2回目以降）があるため email がある場合のみ検索
         let userId: string
 
-        if (existingUsers.rows.length > 0) {
-          // 同メールの User が既存 → Account を紐付けるだけ
-          userId = existingUsers.rows[0].id
+        if (email) {
+          const existingUsers = await client.query<UserRow>(
+            `SELECT id FROM "User" WHERE email = $1 LIMIT 1`,
+            [email]
+          )
+
+          if (existingUsers.rows.length > 0) {
+            // 同メールの User が既存 → Account を紐付けるだけ
+            userId = existingUsers.rows[0].id
+          } else {
+            // User が存在しない → User + Profile を新規作成
+            userId = randomUUID()
+            const now = new Date()
+
+            await client.query(
+              `INSERT INTO "User" (id, email, "passwordHash", "createdAt", "updatedAt")
+               VALUES ($1, $2, NULL, $3, $3)`,
+              [userId, email, now]
+            )
+
+            await client.query(
+              `INSERT INTO "Profile" (id, "userId", name, "createdAt", "updatedAt")
+               VALUES ($1, $2, $3, $4, $4)`,
+              [randomUUID(), userId, name, now]
+            )
+          }
         } else {
-          // User が存在しない → User + Profile を新規作成
-          userId = randomUUID()
-          const now = new Date()
-
-          await client.query(
-            `INSERT INTO "User" (id, email, "passwordHash", "createdAt", "updatedAt")
-             VALUES ($1, $2, NULL, $3, $3)`,
-            [userId, email, now]
-          )
-
-          await client.query(
-            `INSERT INTO "Profile" (id, "userId", name, "createdAt", "updatedAt")
-             VALUES ($1, $2, $3, $4, $4)`,
-            [randomUUID(), userId, name, now]
-          )
+          // Apple 2回目以降でメールなし・Accountも未登録の場合はログイン不可
+          await client.query('ROLLBACK')
+          return false
         }
 
         // Account を新規作成
@@ -138,6 +149,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Line({
       clientId: process.env.LINE_CLIENT_ID!,
       clientSecret: process.env.LINE_CLIENT_SECRET!,
+    }),
+    // Apple Sign In（App Store ガイドライン必須）
+    Apple({
+      clientId: process.env.APPLE_ID!,
+      clientSecret: process.env.APPLE_SECRET!,
     }),
     // メールアドレスとパスワードを使った独自のログイン処理（Credentials Provider）
     Credentials({
