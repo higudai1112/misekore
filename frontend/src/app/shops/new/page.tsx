@@ -26,7 +26,7 @@ export default async function NewShopPage({
         <AppLayout>
             <main className="min-h-screen px-4 pt-6 pb-24 text-[15px] text-gray-800 sm:px-6 lg:px-10">
                 <div className="mx-auto w-full max-w-md sm:max-w-lg md:max-w-xl">
-                    <h1 className="mb-6 text-xl font-bold">
+                    <h1 className="mb-6 text-center text-2xl font-bold text-gray-900">
                         {mode === 'manual' ? 'お店を手動で登録する' : 'お店を登録する'}
                     </h1>
 

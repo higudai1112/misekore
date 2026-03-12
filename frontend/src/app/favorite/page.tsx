@@ -32,6 +32,8 @@ export default async function FavoritePage() {
         </div>
 
         <div className="mx-auto w-full max-w-md space-y-5 sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
+          {/* ページタイトル */}
+          <h1 className="text-center text-2xl font-bold text-gray-900">お気に入り</h1>
 
           {/* 検索入力欄（現状は見た目のみで、今後の実装用） */}
           <div className="rounded-full bg-white px-4 py-3 ring-1 ring-[#8fae8f]/50">
