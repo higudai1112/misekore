@@ -30,6 +30,9 @@ export default async function ShopsPage({ searchParams }: Props) {
         </div>
 
         <div className="mx-auto w-full max-w-md space-y-5 sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
+          {/* ページタイトル */}
+          <h1 className="text-center text-2xl font-bold text-gray-900">お店一覧</h1>
+
           {/* 検索欄 */}
           <SearchInput defaultValue={q ?? ''} />
 

@@ -13,7 +13,7 @@ export const metadata = {
 export default function SettingsPage() {
     return (
         <>
-            <h1 className="mb-8 text-2xl font-bold text-gray-900">設定</h1>
+            <h1 className="mb-8 text-center text-2xl font-bold text-gray-900">設定</h1>
 
             <div className="space-y-8">
                 {/* 各設定グループごとにSettingSectionでまとめる */}

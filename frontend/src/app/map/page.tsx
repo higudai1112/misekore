@@ -21,7 +21,7 @@ export default function MapPage() {
                 </div>
 
                 <div className="mx-auto flex w-full max-w-md flex-1 flex-col sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
-                    <h1 className="mb-4 text-2xl font-bold text-gray-900">マップ</h1>
+                    <h1 className="mb-4 text-center text-2xl font-bold text-gray-900">マップ</h1>
 
                     {/* 
                       マップを配置するコンテナ
