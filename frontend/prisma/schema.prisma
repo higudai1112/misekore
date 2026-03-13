@@ -19,16 +19,19 @@ enum ShopStatus {
 }
 
 model User {
-  id           String        @id @default(uuid())
-  email        String        @unique
-  passwordHash String?       // OAuthユーザーはパスワードなし
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id               String           @id @default(uuid())
+  email            String           @unique
+  passwordHash     String?          // OAuthユーザーはパスワードなし
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
 
-  profile      Profile?
-  userShops    UserShop[]
-  shopPhotos   ShopPhoto[]
-  accounts     Account[]
+  profile          Profile?
+  userShops        UserShop[]
+  shopPhotos       ShopPhoto[]
+  accounts         Account[]
+  plan             UserPlan         @default(FREE)
+  premiumExpiresAt DateTime?
+  placesUsageLogs  PlacesUsageLog[]
 }
 
 // OAuthプロバイダーとの紐付けテーブル
@@ -124,3 +127,24 @@ model ShopPhoto {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// フリーミアムプランの区分
+enum UserPlan {
+  FREE
+  PREMIUM
+}
+
+// Google検索登録の月次利用状況を管理するログ
+model PlacesUsageLog {
+  id         String   @id @default(uuid())
+  userId     String
+  monthKey   String   // "YYYYMM" e.g. "202603"
+  usedCount  Int      @default(0)
+  videoCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, monthKey])
+  @@index([userId, monthKey])
+}
