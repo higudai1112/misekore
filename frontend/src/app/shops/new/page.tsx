@@ -16,8 +16,8 @@ export default async function NewShopPage({
     // ログイン状態を確認（ログイン必須のページのため）
     const session = await auth()
 
-    // ログインしていない場合はトップページへリダイレクト
-    if (!session?.user) {
+    // ログインしていない場合、またはユーザーIDが取得できない場合はトップページへリダイレクト
+    if (!session?.user?.id) {
         redirect('/')
     }
 
