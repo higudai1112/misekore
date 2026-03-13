@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { CreateShopForm } from './_components/CreateShopForm'
 import { ManualShopForm } from './_components/ManualShopForm'
+import { getQuotaStatus } from '@/lib/freemium'
 
 // お店登録ページ (Server Component)
 export default async function NewShopPage({
@@ -22,6 +23,9 @@ export default async function NewShopPage({
 
     const mode = (await searchParams).mode
 
+    // 今月のクォータ状態を取得（Google検索登録の残り件数確認用）
+    const quotaStatus = await getQuotaStatus(session.user.id)
+
     return (
         <AppLayout>
             <main className="min-h-screen px-4 pt-6 pb-24 text-[15px] text-gray-800 sm:px-6 lg:px-10">
@@ -33,7 +37,7 @@ export default async function NewShopPage({
                     {mode === 'manual' ? (
                         <ManualShopForm />
                     ) : (
-                        <CreateShopForm />
+                        <CreateShopForm quotaStatus={quotaStatus} />
                     )}
                 </div>
             </main>
