@@ -25,6 +25,11 @@ export default function SettingsPage() {
                     <SettingItem title="アカウント管理" href="/settings/account" />
                 </SettingSection>
 
+                <SettingSection title="プラン">
+                    {/* プレミアムプラン画面への遷移リンク */}
+                    <SettingItem title="プレミアムプラン" href="/settings/premium" />
+                </SettingSection>
+
                 <SettingSection title="サポート">
                     {/* お問い合わせ画面への遷移リンク */}
                     <SettingItem title="お問い合わせ" href="/settings/contact" />
