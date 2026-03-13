@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto'
 import { uploadToS3 } from '@/lib/storage.server'
 import type { ShopStatus } from '@/types/shop'
 import type { ActionResult } from '@/lib/action-result'
+import { checkQuota, consumeQuota } from '@/lib/freemium'
 
 export async function createShop(
   _prevState: ActionResult | null,
@@ -36,6 +37,14 @@ export async function createShop(
   const lat = formData.get('lat') ? parseFloat(formData.get('lat') as string) : null
   const lng = formData.get('lng') ? parseFloat(formData.get('lng') as string) : null
   const tags = formData.getAll('tags[]') as string[]
+
+  // Google検索登録（placeId あり）の場合は月次クォータをチェック
+  if (placeId) {
+    const canRegister = await checkQuota(userId)
+    if (!canRegister) {
+      return { success: false, error: 'QUOTA_EXCEEDED' }
+    }
+  }
 
   let shopId: string
 
@@ -76,6 +85,11 @@ export async function createShop(
     shopId = result.shopId
   } catch {
     return { success: false, error: '登録に失敗しました' }
+  }
+
+  // Google検索登録の場合はクォータを消費する（transaction外）
+  if (placeId) {
+    await consumeQuota(userId)
   }
 
   // 写真を S3 にアップロードし、公開 URL を DB に保存（トランザクション外で実行）
