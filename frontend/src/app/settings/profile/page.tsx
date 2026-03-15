@@ -3,23 +3,26 @@ import { query } from "@/lib/db.server"
 import { SettingSection } from "@/components/settings/SettingSection"
 import { SettingsHeader } from "@/components/settings/SettingsHeader"
 import { ProfileEditForm } from "./_components/ProfileEditForm"
+import { AvatarUploadForm } from "./_components/AvatarUploadForm"
 import type { QueryResultRow } from "pg"
 
 export const metadata = {
     title: "プロフィール | 店コレ",
 }
 
-type ProfileRow = QueryResultRow & { name: string | null }
+type ProfileRow = QueryResultRow & { name: string | null; avatarUrl: string | null }
 
 export default async function ProfilePage() {
     const session = await auth()
     const userId = session?.user?.id ?? ""
 
+    // avatarUrl も合わせて取得する
     const rows = await query<ProfileRow>(
-        `SELECT name FROM "Profile" WHERE "userId" = $1`,
+        `SELECT name, "avatarUrl" FROM "Profile" WHERE "userId" = $1`,
         [userId]
     )
     const currentName = rows[0]?.name ?? ""
+    const avatarUrl = rows[0]?.avatarUrl ?? null
 
     return (
         <>
@@ -29,10 +32,11 @@ export default async function ProfilePage() {
                 <SettingSection title="プロフィール情報">
                     <div className="rounded-xl border bg-white p-6 shadow-sm">
                         <div className="flex flex-col items-center gap-4">
-                            {/* アバター（将来実装） */}
-                            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#dfe8df] text-3xl font-bold text-[#8fae8f]">
-                                {currentName ? currentName.charAt(0).toUpperCase() : "?"}
-                            </div>
+                            {/* プロフィール画像のアップロードフォーム */}
+                            <AvatarUploadForm
+                                currentAvatarUrl={avatarUrl}
+                                currentName={currentName}
+                            />
                             <p className="text-sm text-gray-500">{session?.user?.email}</p>
                         </div>
                     </div>
