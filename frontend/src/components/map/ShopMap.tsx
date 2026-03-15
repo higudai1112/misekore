@@ -18,7 +18,11 @@ interface ShopMarker {
     status: "WANT" | "VISITED" | "FAVORITE"
 }
 
-export function ShopMap() {
+interface Props {
+    avatarUrl?: string | null
+}
+
+export function ShopMap({ avatarUrl }: Props) {
     const router = useRouter()
 
     // マップを描画するためのDOM要素への参照
@@ -27,10 +31,93 @@ export function ShopMap() {
     const mapInstanceRef = useRef<unknown>(null)
     // 現在開いているカスタムポップアップ要素とその削除関数を保持（常に1つだけ表示するため）
     const activePopupRef = useRef<{ marker: unknown; removePopup: () => void } | null>(null)
+    // 現在地マーカー（AdvancedMarkerElement）への参照（更新・削除用）
+    const currentLocationMarkerRef = useRef<unknown>(null)
+    // 現在地の青い円（google.maps.Circle）への参照（更新・削除用）
+    const currentCircleRef = useRef<unknown>(null)
+    // AdvancedMarkerElementクラス自体を保持（initMap以外からも使えるように）
+    const advancedMarkerElementRef = useRef<unknown>(null)
 
     const [shops, setShops] = useState<ShopMarker[]>([])
     const [error, setError] = useState<string | null>(null)
     const [isApiLoaded, setIsApiLoaded] = useState(false)
+
+    /**
+     * 現在地マーカーと青い円をマップ上に表示する関数
+     * - 既存の現在地マーカー・円を削除してから再作成（重複防止）
+     * - avatarUrl あり → 円形プロフィール画像マーカー
+     * - avatarUrl なし → デフォルトの青いユーザーSVGアイコン
+     * - google.maps.Circle で半透明の青い円を表示
+     * - マップを lat/lng に移動してズームを15にする
+     */
+    const showCurrentLocation = (lat: number, lng: number) => {
+        const map = mapInstanceRef.current as any
+        const AdvancedMarkerElement = advancedMarkerElementRef.current as any
+        if (!map || !AdvancedMarkerElement) return
+
+        // 既存の現在地マーカーを削除
+        if (currentLocationMarkerRef.current) {
+            const prevMarker = currentLocationMarkerRef.current as any
+            prevMarker.map = null
+            currentLocationMarkerRef.current = null
+        }
+
+        // 既存の現在地円を削除
+        if (currentCircleRef.current) {
+            const prevCircle = currentCircleRef.current as any
+            prevCircle.setMap(null)
+            currentCircleRef.current = null
+        }
+
+        // 現在地マーカーのDOM要素を生成
+        const markerContent = document.createElement("div")
+        markerContent.style.width = "40px"
+        markerContent.style.height = "40px"
+        markerContent.style.borderRadius = "50%"
+        markerContent.style.border = "2px solid #4285F4"
+        markerContent.style.overflow = "hidden"
+        markerContent.style.backgroundColor = "#4285F4"
+        markerContent.style.display = "flex"
+        markerContent.style.alignItems = "center"
+        markerContent.style.justifyContent = "center"
+
+        if (avatarUrl) {
+            // プロフィール画像を表示
+            const img = document.createElement("img")
+            img.src = avatarUrl
+            img.style.width = "100%"
+            img.style.height = "100%"
+            img.style.objectFit = "cover"
+            markerContent.appendChild(img)
+        } else {
+            // デフォルトの青いユーザーSVGアイコン
+            markerContent.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="24" height="24"><path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" /></svg>`
+        }
+
+        // AdvancedMarkerElementで現在地マーカーを作成
+        const locationMarker = new AdvancedMarkerElement({
+            map,
+            position: { lat, lng },
+            title: "現在地",
+            content: markerContent,
+        })
+        currentLocationMarkerRef.current = locationMarker
+
+        // google.maps.Circle で半透明の青い円を表示
+        const circle = new (window as any).google.maps.Circle({
+            map,
+            center: { lat, lng },
+            radius: 50, // メートル
+            fillColor: "#4285F4",
+            fillOpacity: 0.2,
+            strokeWeight: 0,
+        })
+        currentCircleRef.current = circle
+
+        // マップを現在地に移動してズーム15に設定
+        map.setCenter({ lat, lng })
+        map.setZoom(15)
+    }
 
     // Next.jsのSPA遷移（画面遷移）で戻ってきた際にScriptがすでに読み込み済みの場合の対策
     useEffect(() => {
@@ -94,6 +181,9 @@ export function ShopMap() {
                 const { Map } = mapsLibrary
                 const { AdvancedMarkerElement, PinElement } = markerLibrary
 
+                // AdvancedMarkerElementクラスをrefに保存（showCurrentLocationから参照するため）
+                advancedMarkerElementRef.current = AdvancedMarkerElement
+
                 // ==========================================
                 // 2. マップ自体の初期化処理
                 // ==========================================
@@ -120,18 +210,15 @@ export function ShopMap() {
                         }
                     })
 
-                    // マップ初期化直後に現在地を取得して移動する機能を自動実行
+                    // マップ初期化直後に現在地を取得してマーカー・円を表示し、ズームを15に設定
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(
                             (position) => {
-                                if (mapInstanceRef.current) {
-                                    const mapObj = mapInstanceRef.current as any
-                                    mapObj.setCenter({
-                                        lat: position.coords.latitude,
-                                        lng: position.coords.longitude,
-                                    })
-                                    mapObj.setZoom(14)
-                                }
+                                // showCurrentLocationでマーカー・円の表示とズームを一括処理
+                                showCurrentLocation(
+                                    position.coords.latitude,
+                                    position.coords.longitude
+                                )
                             },
                             (err) => {
                                 console.warn("初期位置情報の取得に失敗しました。デフォルトの場所を表示します:", err)
@@ -291,7 +378,7 @@ export function ShopMap() {
         }
     }, [shops, isApiLoaded, router])
 
-    // 現在地を取得してマップを移動する
+    // 現在地を取得してマーカー・円の表示・マップ移動をまとめて行う
     const handleCurrentLocation = () => {
         if (!navigator.geolocation) {
             alert("お使いのブラウザは位置情報をサポートしていません")
@@ -300,15 +387,11 @@ export function ShopMap() {
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                if (mapInstanceRef.current) {
-                    const pos = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                    }
-                    const mapObj = mapInstanceRef.current as any
-                    mapObj.setCenter(pos)
-                    mapObj.setZoom(15) // 現在地の場合はズームを上げる
-                }
+                // showCurrentLocationでマーカー・円の表示とズームを一括処理
+                showCurrentLocation(
+                    position.coords.latitude,
+                    position.coords.longitude
+                )
             },
             (err) => {
                 console.error("Geolocation error:", err)
