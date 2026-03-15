@@ -1,10 +1,29 @@
 import { NextResponse } from 'next/server'
 import { rateLimit } from '@/lib/rate-limit'
+import { auth } from '@/lib/auth'
+import { query } from '@/lib/db.server'
+import { checkApiDailyLimit, incrementApiCallCount } from '@/lib/daily-limit'
 
 const limiter = rateLimit({
     interval: 60000,
     uniqueTokenPerInterval: 500,
 })
+
+// addressComponentsの型定義
+type AddressComponent = {
+    types: string[]
+    longText: string
+}
+
+// Shopテーブルキャッシュ行の型定義
+type ShopCacheRow = {
+    id: string
+    name: string
+    address: string | null
+    lat: number | null
+    lng: number | null
+    placeId: string | null
+}
 
 export async function GET(request: Request) {
     try {
@@ -13,9 +32,10 @@ export async function GET(request: Request) {
             request.headers.get('x-real-ip') ??
             'unknown'
 
+        // 開発環境ではRateLimitを無効化（IPレートリミット: 30 req/min）
         if (process.env.NODE_ENV === 'production') {
             try {
-                await limiter.check(100, ip) // 100 requests per minute
+                await limiter.check(30, ip) // 30 requests per minute
             } catch {
                 return NextResponse.json(
                     { error: 'Rate limit exceeded' },
@@ -33,6 +53,39 @@ export async function GET(request: Request) {
                 { error: 'Missing placeId' },
                 { status: 400, headers: { 'Cache-Control': 'no-store' } }
             )
+        }
+
+        // DBキャッシュチェック（placeIdでShopテーブルを検索）
+        const cachedShops = await query<ShopCacheRow>(
+            `SELECT id, name, address, lat, lng, "placeId" FROM "Shop" WHERE "placeId" = $1 LIMIT 1`,
+            [placeId]
+        )
+
+        if (cachedShops.length > 0) {
+            // DBキャッシュヒット: Google APIを呼ばず、日次カウントも消費しない
+            const shop = cachedShops[0]
+            return NextResponse.json(
+                {
+                    placeId: shop.placeId || placeId,
+                    name: shop.name,
+                    address: shop.address || '',
+                    lat: shop.lat ?? null,
+                    lng: shop.lng ?? null,
+                },
+                { headers: { 'Cache-Control': 'no-store' } }
+            )
+        }
+
+        // ユーザー日次制限チェック（認証済みユーザーのみ）
+        const session = await auth()
+        if (session?.user?.id) {
+            const withinLimit = await checkApiDailyLimit(session.user.id)
+            if (!withinLimit) {
+                return NextResponse.json(
+                    { error: '1日のAPI利用上限に達しました' },
+                    { status: 429, headers: { 'Cache-Control': 'no-store' } }
+                )
+            }
         }
 
         // サーバー専用キーを使用（クライアント非露出）
@@ -77,7 +130,7 @@ export async function GET(request: Request) {
 
         // 住所整形用のユーティリティ関数
         const getFormattedJapaneseAddress = (
-            addressComponents: any[] | undefined,
+            addressComponents: AddressComponent[] | undefined,
             fallbackAddress: string
         ): string => {
             if (!addressComponents || !Array.isArray(addressComponents) || addressComponents.length === 0) {
@@ -85,7 +138,7 @@ export async function GET(request: Request) {
             }
 
             const getComponent = (type: string) => {
-                const comp = addressComponents.find((c: any) => c.types.includes(type))
+                const comp = addressComponents.find((c: AddressComponent) => c.types.includes(type))
                 return comp ? comp.longText : ''
             }
 
@@ -139,6 +192,30 @@ export async function GET(request: Request) {
             address: cleanAddress,
             lat: result.location?.latitude ?? null,
             lng: result.location?.longitude ?? null,
+        }
+
+        // Shopテーブルにキャッシュ保存（placeIdにUNIQUE制約なしのためSELECT-first→INSERT）
+        // INSERT失敗はサイレント（レスポンスを妨げない）
+        try {
+            const existing = await query<{ id: string }>(
+                `SELECT id FROM "Shop" WHERE "placeId" = $1 LIMIT 1`,
+                [formattedResult.placeId]
+            )
+            if (existing.length === 0) {
+                await query(
+                    `INSERT INTO "Shop" (id, name, address, lat, lng, "placeId", source, "createdAt", "updatedAt")
+                     VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, 'google', NOW(), NOW())`,
+                    [formattedResult.name, formattedResult.address, formattedResult.lat, formattedResult.lng, formattedResult.placeId]
+                )
+            }
+        } catch (err) {
+            // キャッシュ保存失敗はサイレントに無視（レスポンスには影響しない）
+            console.warn('Failed to cache shop to DB:', err)
+        }
+
+        // Google APIを実際に呼んだ後のみ日次カウントを消費
+        if (session?.user?.id) {
+            await incrementApiCallCount(session.user.id)
         }
 
         return NextResponse.json(formattedResult, {

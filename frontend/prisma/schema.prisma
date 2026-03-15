@@ -32,6 +32,7 @@ model User {
   plan             UserPlan         @default(FREE)
   premiumExpiresAt DateTime?
   placesUsageLogs  PlacesUsageLog[]
+  dailyUsageLogs   DailyUsageLog[]
 }
 
 // OAuthプロバイダーとの紐付けテーブル
@@ -147,4 +148,20 @@ model PlacesUsageLog {
 
   @@unique([userId, monthKey])
   @@index([userId, monthKey])
+}
+
+// 1日あたりのAPI呼び出し回数・お店登録回数を管理するログ
+model DailyUsageLog {
+  id           String   @id @default(uuid())
+  userId       String
+  dayKey       String   // "YYYYMMDD" e.g. "20260315"
+  apiCallCount Int      @default(0)
+  shopRegCount Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dayKey])
+  @@index([userId, dayKey])
 }
