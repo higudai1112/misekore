@@ -60,18 +60,29 @@ export async function createShop(
     await client.query('BEGIN')
 
     // placeId が指定されていれば既存 Shop を再利用、なければ新規作成
+    // ON CONFLICT DO NOTHING で race condition を防ぐ。RETURNING id が空の場合は SELECT で取得する
     let currentShopId: string | null = null
     if (placeId) {
-      const existingRows = await client.query<{ id: string }>(
-        `SELECT id FROM "Shop" WHERE "placeId" = $1 LIMIT 1`,
-        [placeId]
+      const upsertRows = await client.query<{ id: string }>(
+        `INSERT INTO "Shop" (id, name, address, lat, lng, "placeId", source, "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, $6, 'google', NOW(), NOW())
+         ON CONFLICT ("placeId") DO NOTHING
+         RETURNING id`,
+        [randomUUID(), name, address, lat, lng, placeId]
       )
-      if (existingRows.rows.length > 0) {
+      if (upsertRows.rows.length > 0) {
+        // 新規作成された場合
+        currentShopId = upsertRows.rows[0].id
+      } else {
+        // 既存レコードが存在した場合（競合）は SELECT で取得
+        const existingRows = await client.query<{ id: string }>(
+          `SELECT id FROM "Shop" WHERE "placeId" = $1`,
+          [placeId]
+        )
         currentShopId = existingRows.rows[0].id
       }
-    }
-
-    if (!currentShopId) {
+    } else {
+      // placeId なし（手動登録）は新規作成
       const newShopId = randomUUID()
       await client.query(
         `INSERT INTO "Shop" (id, name, address, lat, lng, "placeId", source, "createdAt", "updatedAt")
