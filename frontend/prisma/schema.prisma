@@ -75,7 +75,7 @@ model Shop {
   shopPhotos ShopPhoto[]
   shopTags   ShopTag[]
 
-  @@index([placeId])
+  @@unique([placeId])
 }
 
 model Tag {
