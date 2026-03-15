@@ -1,6 +1,12 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  // Server Actions のボディサイズ上限を 6MB に設定（プロフィール画像アップロード用）
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '6mb',
+    },
+  },
   images: {
     remotePatterns: [
       {
