@@ -15,12 +15,13 @@ export const authConfig = {
                 nextUrl.pathname === '/login' ||
                 nextUrl.pathname === '/signup'
 
-            // 未ログインユーザーでも閲覧できる法的情報・サポートページ
+            // 未ログインユーザーでも閲覧できる法的情報・サポートページ・共有ページ
             const isOnGuestPage =
                 nextUrl.pathname === '/settings/privacy' ||
                 nextUrl.pathname === '/settings/terms' ||
                 nextUrl.pathname === '/settings/contact' ||
-                nextUrl.pathname === '/settings/contact/thanks'
+                nextUrl.pathname === '/settings/contact/thanks' ||
+                nextUrl.pathname.startsWith('/share/') // お店共有ページは未ログインでも閲覧可能
 
             if (isOnPublicPage) {
                 // ログイン済みのユーザーが公開ページにアクセスした場合は、一覧（/shops）へリダイレクト
