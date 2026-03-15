@@ -2,6 +2,9 @@ import type { NextAuthConfig } from 'next-auth'
 
 // NextAuthの認証設定（ミドルウェアと共通で利用される部分）
 export const authConfig = {
+    // ミドルウェア（Edge runtime）でも secret を読み取れるよう明示的に指定する
+    // AUTH_SECRET 環境変数から取得（NextAuth v5 の自動読み取りが Edge で機能しない場合の対策）
+    secret: process.env.AUTH_SECRET,
     pages: {
         signIn: '/', // 未ログイン時にリダイレクトされるページ（トップページ）
     },
