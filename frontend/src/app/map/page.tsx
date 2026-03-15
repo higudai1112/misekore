@@ -1,14 +1,33 @@
 import { AppLayout } from "@/components/layout/AppLayout"
 import { ShopMap } from "@/components/map/ShopMap"
+import { auth } from "@/lib/auth"
+import { query } from "@/lib/db.server"
 
 export const metadata = {
     title: "マップ | 店コレ",
 }
 
-export default function MapPage() {
+// Profileテーブルのavatarカラム取得用の型
+type ProfileRow = { avatarUrl: string | null }
+
+// async Server Component に変更：ログイン中ユーザーのプロフィール画像URLを取得して渡す
+export default async function MapPage() {
+    const session = await auth()
+    const userId = session?.user?.id ?? null
+    let avatarUrl: string | null = null
+
+    if (userId) {
+        // ProfileテーブルからavatarUrlを取得（未設定の場合はnull）
+        const rows = await query<ProfileRow>(
+            `SELECT "avatarUrl" FROM "Profile" WHERE "userId" = $1`,
+            [userId]
+        )
+        avatarUrl = rows[0]?.avatarUrl ?? null
+    }
+
     return (
         <AppLayout>
-            {/* 
+            {/*
               ページ全体のメインコンテナ
               - h-screen: 画面の高さを100vhに設定
               - pb-24: 下部のフッター（AppLayout由来）と被らないように余白を確保
@@ -23,14 +42,14 @@ export default function MapPage() {
                 <div className="mx-auto flex w-full max-w-md flex-1 flex-col sm:max-w-lg md:max-w-2xl lg:max-w-4xl">
                     <h1 className="mb-4 text-center text-2xl font-bold text-gray-900">マップ</h1>
 
-                    {/* 
+                    {/*
                       マップを配置するコンテナ
                       - flex-1: 残りの縦幅をすべて埋めるように伸縮させる
                       - relative: 内部のShopMap（absolute等を使う場合）の基準点とする
                     */}
                     <div className="relative mb-4 flex-1">
-                        {/* クライアントコンポーネントのGoogle Map本体を呼び出し */}
-                        <ShopMap />
+                        {/* クライアントコンポーネントのGoogle Map本体を呼び出し（avatarUrlを渡す） */}
+                        <ShopMap avatarUrl={avatarUrl} />
                     </div>
 
 
