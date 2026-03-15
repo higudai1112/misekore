@@ -1,6 +1,6 @@
 'use server'
 
-import { prisma } from '@/lib/prisma'
+import { pool, query } from '@/lib/db.server'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { randomUUID } from 'crypto'
@@ -8,6 +8,7 @@ import { uploadToS3 } from '@/lib/storage.server'
 import type { ShopStatus } from '@/types/shop'
 import type { ActionResult } from '@/lib/action-result'
 import { checkQuota, consumeQuota } from '@/lib/freemium'
+import { checkShopRegDailyLimit, incrementShopRegCount } from '@/lib/daily-limit'
 
 export async function createShop(
   _prevState: ActionResult | null,
@@ -46,45 +47,72 @@ export async function createShop(
     }
   }
 
+  // 日次お店登録制限チェック
+  const withinDailyLimit = await checkShopRegDailyLimit(userId)
+  if (!withinDailyLimit) {
+    return { success: false, error: 'DAILY_SHOP_LIMIT_EXCEEDED' }
+  }
+
   let shopId: string
 
+  const client = await pool.connect()
   try {
-    // Shop・UserShop・Tag・ShopTag をトランザクションで登録
-    const result = await prisma.$transaction(async (tx) => {
-      // placeId が指定されていれば既存 Shop を再利用、なければ新規作成
-      let shop = placeId
-        ? await tx.shop.findFirst({ where: { placeId } })
-        : null
+    await client.query('BEGIN')
 
-      if (!shop) {
-        shop = await tx.shop.create({
-          data: { name, address, lat, lng, placeId },
-        })
+    // placeId が指定されていれば既存 Shop を再利用、なければ新規作成
+    let currentShopId: string | null = null
+    if (placeId) {
+      const existingRows = await client.query<{ id: string }>(
+        `SELECT id FROM "Shop" WHERE "placeId" = $1 LIMIT 1`,
+        [placeId]
+      )
+      if (existingRows.rows.length > 0) {
+        currentShopId = existingRows.rows[0].id
       }
+    }
 
-      // ユーザーとお店を紐づける（選択されたステータスで登録、VISITED/FAVORITE は訪問日時もセット）
-      await tx.userShop.create({
-        data: { userId, shopId: shop.id, status, memo, visitedAt },
-      })
+    if (!currentShopId) {
+      const newShopId = randomUUID()
+      await client.query(
+        `INSERT INTO "Shop" (id, name, address, lat, lng, "placeId", source, "createdAt", "updatedAt")
+         VALUES ($1, $2, $3, $4, $5, $6, 'google', NOW(), NOW())`,
+        [newShopId, name, address, lat, lng, placeId]
+      )
+      currentShopId = newShopId
+    }
 
-      // タグを upsert して ShopTag を登録（Tag.name に @unique があるため upsert 可能）
-      for (const tagName of tags) {
-        const tag = await tx.tag.upsert({
-          where: { name: tagName },
-          create: { name: tagName },
-          update: {},
-        })
-        await tx.shopTag.create({
-          data: { shopId: shop.id, tagId: tag.id },
-        })
-      }
+    // ユーザーとお店を紐づける（選択されたステータスで登録、VISITED/FAVORITE は訪問日時もセット）
+    await client.query(
+      `INSERT INTO "UserShop" (id, "userId", "shopId", status, memo, "visitedAt", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4::"ShopStatus", $5, $6, NOW(), NOW())`,
+      [randomUUID(), userId, currentShopId, status, memo, visitedAt]
+    )
 
-      return { shopId: shop.id }
-    })
+    // タグを upsert して ShopTag を登録（Tag.name に @unique があるため upsert 可能）
+    for (const tagName of tags) {
+      const tagRows = await client.query<{ id: string }>(
+        `INSERT INTO "Tag" (id, name, "createdAt", "updatedAt")
+         VALUES (gen_random_uuid(), $1, NOW(), NOW())
+         ON CONFLICT (name) DO UPDATE SET "updatedAt" = NOW()
+         RETURNING id`,
+        [tagName]
+      )
+      const tagId = tagRows.rows[0].id
+      await client.query(
+        `INSERT INTO "ShopTag" (id, "shopId", "tagId", "createdAt", "updatedAt")
+         VALUES (gen_random_uuid(), $1, $2, NOW(), NOW())
+         ON CONFLICT ("shopId","tagId") DO NOTHING`,
+        [currentShopId, tagId]
+      )
+    }
 
-    shopId = result.shopId
+    await client.query('COMMIT')
+    shopId = currentShopId
   } catch {
+    await client.query('ROLLBACK')
     return { success: false, error: '登録に失敗しました' }
+  } finally {
+    client.release()
   }
 
   // Google検索登録の場合はクォータを消費する（transaction外）
@@ -92,15 +120,20 @@ export async function createShop(
     await consumeQuota(userId)
   }
 
+  // 登録成功後に日次お店登録カウントを消費（transaction外）
+  await incrementShopRegCount(userId)
+
   // 写真を S3 にアップロードし、公開 URL を DB に保存（トランザクション外で実行）
   const photos = formData.getAll('photos') as File[]
   if (photos.length > 0) {
     for (const photo of photos) {
       if (photo.size > 0) {
         const imageUrl = await uploadToS3(photo)
-        await prisma.shopPhoto.create({
-          data: { shopId, userId, imageUrl },
-        })
+        await query(
+          `INSERT INTO "ShopPhoto" (id, "shopId", "userId", "imageUrl", "createdAt")
+           VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
+          [shopId, userId, imageUrl]
+        )
       }
     }
   }
