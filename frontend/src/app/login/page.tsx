@@ -68,42 +68,8 @@ export default function LoginPage() {
 
         <h1 className="mb-6 text-center text-2xl font-bold">ログイン</h1>
 
-        {/* ソーシャルログインボタン */}
-        <div className="mb-6 space-y-3">
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
-          >
-            <Image src="/google_icon4.png" alt="Google" width={20} height={20} />
-            Googleでログイン
-          </button>
-          <button
-            type="button"
-            onClick={handleLineSignIn}
-            className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#06C755] px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#05b34d]"
-          >
-            <Image src="/line_logo.png" alt="LINE" width={20} height={20} />
-            LINEでログイン
-          </button>
-          <button
-            type="button"
-            onClick={handleAppleSignIn}
-            className="flex w-full items-center justify-center gap-3 rounded-lg bg-black px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-gray-900"
-          >
-            <Image src="/apple_logo.png" alt="Apple" width={18} height={20} />
-            Appleでログイン
-          </button>
-        </div>
-
-        {/* 区切り線 */}
-        <div className="mb-6 flex items-center gap-3">
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-xs text-gray-400">またはメールアドレスで</span>
-          <div className="h-px flex-1 bg-gray-200" />
-        </div>
-
-        <form action={handleSubmit} className="space-y-4">
+        {/* メールアドレスでログインフォーム */}
+        <form action={handleSubmit} className="mb-6 space-y-4">
           <div className="space-y-1">
             <Label htmlFor="email">メールアドレス</Label>
             <Input
@@ -131,6 +97,41 @@ export default function LoginPage() {
             {isPending ? 'ログイン中...' : 'ログイン'}
           </Button>
         </form>
+
+        {/* 区切り線 */}
+        <div className="mb-6 flex items-center gap-3">
+          <div className="h-px flex-1 bg-gray-200" />
+          <span className="text-xs text-gray-400">または外部アカウントで</span>
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+
+        {/* ソーシャルログインボタン */}
+        <div className="space-y-3">
+          <button
+            type="button"
+            onClick={handleGoogleSignIn}
+            className="flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+          >
+            <Image src="/google_icon4.png" alt="Google" width={20} height={20} />
+            Googleでログイン
+          </button>
+          <button
+            type="button"
+            onClick={handleLineSignIn}
+            className="flex w-full items-center justify-center gap-3 rounded-lg bg-[#06C755] px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#05b34d]"
+          >
+            <Image src="/line_logo.png" alt="LINE" width={20} height={20} />
+            LINEでログイン
+          </button>
+          <button
+            type="button"
+            onClick={handleAppleSignIn}
+            className="flex w-full items-center justify-center gap-3 rounded-lg bg-black px-4 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-gray-900"
+          >
+            <Image src="/apple_logo.png" alt="Apple" width={18} height={20} />
+            Appleでログイン
+          </button>
+        </div>
       </div>
     </main>
   )
