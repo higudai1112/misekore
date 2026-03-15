@@ -27,6 +27,8 @@ type AccountRow = QueryResultRow & {
 // NextAuthの設定本体。ミドルウェア用設定(authConfig)を拡張している
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  // Vercel等のリバースプロキシ環境でX-Forwarded-Hostを信頼する（本番環境の500エラー対策）
+  trustHost: true,
   session: {
     strategy: 'jwt', // セッションの管理方法としてJWT(JSON Web Token)を使用
   },

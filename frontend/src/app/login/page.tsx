@@ -13,30 +13,40 @@ import { Label } from '@/components/ui/label'
 // ログイン機能を提供するページコンポーネント
 export default function LoginPage() {
   const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
 
-  async function handleSubmit(formData: FormData) {
-    const email = formData.get('email')
-    const password = formData.get('password')
+  // フォーム送信時の処理
+  // NextAuth v5 はエラー時に返り値ではなく例外をthrowするため try-catch で受け取る
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    if (isPending) return
 
     setError(null)
     setIsPending(true)
 
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    })
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
 
-    setIsPending(false)
+      // v4 互換: result.error が返る場合のフォールバック
+      if (result?.error) {
+        setError('メールアドレスかパスワードが違います')
+        return
+      }
 
-    if (result?.error) {
+      router.push('/shops')
+    } catch {
+      // NextAuth v5 は認証失敗時に例外をthrowするためここで捕捉する
       setError('メールアドレスかパスワードが違います')
-      return
+    } finally {
+      setIsPending(false)
     }
-
-    router.push('/shops')
   }
 
   // Googleログインボタン押下時の処理
@@ -69,14 +79,16 @@ export default function LoginPage() {
         <h1 className="mb-6 text-center text-2xl font-bold">ログイン</h1>
 
         {/* メールアドレスでログインフォーム */}
-        <form action={handleSubmit} className="mb-6 space-y-4">
+        <form onSubmit={handleSubmit} className="mb-6 space-y-4">
           <div className="space-y-1">
             <Label htmlFor="email">メールアドレス</Label>
             <Input
               id="email"
-              name="email"
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="example@example.com"
+              required
             />
           </div>
 
@@ -84,8 +96,10 @@ export default function LoginPage() {
             <Label htmlFor="password">パスワード</Label>
             <Input
               id="password"
-              name="password"
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
