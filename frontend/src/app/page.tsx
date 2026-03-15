@@ -20,21 +20,21 @@ export default function TitlePage() {
       <div className="w-full max-w-sm text-center">
 
         {/* アプリアイコン */}
-        <div className="mx-auto mb-6 w-fit drop-shadow-xl">
+        <div className="mx-auto mb-6 w-fit drop-shadow-lg">
           <Image
-            src="/icon.png"
+            src="/new_icon.png"
             alt="店コレ"
-            width={100}
-            height={100}
-            className="rounded-[24px]"
+            width={120}
+            height={120}
+            className="rounded-[28px]"
             priority
             unoptimized
           />
         </div>
 
         {/* サービス名 */}
-        <h1 className="mb-2 text-3xl font-bold tracking-tight text-gray-900">
-          店コレ
+        <h1 className="mb-2 text-4xl font-bold tracking-[0.12em] text-gray-900 font-[family-name:var(--font-poppins)]">
+          MISEKORE
         </h1>
 
         {/* キャッチコピー */}

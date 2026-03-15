@@ -7,6 +7,7 @@ const EditShopDialog = dynamic(
   () => import('../[id]/_components/EditShopDialog').then(mod => mod.EditShopDialog),
   { ssr: false }
 )
+import { ShareButton } from './ShareButton'
 import type { ShopStatus } from '@/types/shop'
 
 type ShopHeaderProps = {
@@ -33,14 +34,17 @@ export default function ShopHeader({ shop }: ShopHeaderProps) {
         ← 戻る
       </button>
 
-      {/* 編集モーダル */}
-      <EditShopDialog
-        shopId={shop.id}
-        defaultName={shop.name}
-        defaultMemo={shop.memo || ''}
-        defaultStatus={shop.status}
-        defaultTags={shop.tags.map(t => t.name)}
-      />
+      {/* 右側ボタン群: 共有ボタン＋編集モーダル */}
+      <div className="flex items-center gap-2">
+        <ShareButton shopId={shop.id} shopName={shop.name} />
+        <EditShopDialog
+          shopId={shop.id}
+          defaultName={shop.name}
+          defaultMemo={shop.memo || ''}
+          defaultStatus={shop.status}
+          defaultTags={shop.tags.map(t => t.name)}
+        />
+      </div>
     </header>
   )
 }
