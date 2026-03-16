@@ -26,8 +26,8 @@ export default function SettingsPage() {
                 </SettingSection>
 
                 <SettingSection title="プラン">
-                    {/* プレミアムプラン画面への遷移リンク */}
-                    <SettingItem title="プレミアムプラン" href="/settings/premium" />
+                    {/* プレミアムプランはiOSアプリリリースまで遷移を無効化 */}
+                    <SettingItem title="プレミアムプラン" />
                 </SettingSection>
 
                 <SettingSection title="サポート">
