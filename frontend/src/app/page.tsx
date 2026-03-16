@@ -4,11 +4,12 @@ import { type Metadata } from 'next'
 import { Button } from '@/components/ui/button'
 
 // トップページ固定OGP（SNS共有時にアプリ紹介が表示されるように設定）
+// 画像URLは環境変数に依存しないよう絶対URLで指定する
 export const metadata: Metadata = {
   title: 'お店選びに迷わない',
-  description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困らない。',
+  description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困りません。',
   alternates: {
-    canonical: 'https://misekore.com',
+    canonical: '/',
   },
   openGraph: {
     type: 'website',
@@ -16,10 +17,10 @@ export const metadata: Metadata = {
     siteName: 'MISEKORE',
     locale: 'ja_JP',
     title: 'お店選びに迷わない',
-    description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困らない。',
+    description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困りません。',
     images: [
       {
-        url: '/OGP.png', // metadataBase で解決 → https://misekore.com/OGP.png
+        url: 'https://misekore.com/ogp.png',
         width: 1200,
         height: 630,
         alt: 'MISEKORE｜行く店、即答できる',
@@ -29,8 +30,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'お店選びに迷わない',
-    description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困らない。',
-    images: ['/OGP.png'],
+    description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困りません。',
+    images: ['https://misekore.com/ogp.png'],
   },
 }
 
