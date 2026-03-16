@@ -35,7 +35,7 @@ export default async function ShopDetailPage({
   return (
     <AppLayout>
       {/* 画面下部のナビゲーションバーとステータス変更アクションバーの高さ分、下部に余白を持たせる */}
-      <div className="pb-40 px-4">
+      <div className="pb-40 px-4 sm:px-6 lg:px-10">
         <div className="mx-auto w-full max-w-2xl space-y-6">
 
           <ShopHeader shop={shop} />
