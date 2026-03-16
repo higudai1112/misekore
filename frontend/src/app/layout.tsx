@@ -24,7 +24,7 @@ const poppins = Poppins({
 
 export const metadata: Metadata = {
   // metadataBase を固定URLにすることで、環境変数未設定時でも正しく解決される
-  metadataBase: new URL('https://misekore.com'),
+  metadataBase: new URL('https://www.misekore.com'),
   title: 'MISEKORE',
   description: '行く店、即答できる。',
   icons: {

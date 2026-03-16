@@ -13,14 +13,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    url: 'https://misekore.com',
+    url: 'https://www.misekore.com',
     siteName: 'MISEKORE',
     locale: 'ja_JP',
     title: 'お店選びに迷わない',
     description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困りません。',
     images: [
       {
-        url: 'https://misekore.com/ogp.png',
+        url: 'https://www.misekore.com/ogp.png',
         width: 1200,
         height: 630,
         alt: 'MISEKORE｜行く店、即答できる',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'お店選びに迷わない',
     description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困りません。',
-    images: ['https://misekore.com/ogp.png'],
+    images: ['https://www.misekore.com/ogp.png'],
   },
 }
 
