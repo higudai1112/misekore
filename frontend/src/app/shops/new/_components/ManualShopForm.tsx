@@ -79,6 +79,21 @@ export function ManualShopForm() {
                 />
             </div>
 
+            {/* 写真 (任意) */}
+            <div>
+                <label htmlFor="photos" className="mb-1 block text-sm font-medium text-gray-700">
+                    写真（任意）
+                </label>
+                <input
+                    type="file"
+                    id="photos"
+                    name="photos"
+                    multiple
+                    accept="image/*"
+                    className="w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-gray-200"
+                />
+            </div>
+
             <button
                 type="submit"
                 disabled={isPending}
