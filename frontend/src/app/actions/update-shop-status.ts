@@ -26,6 +26,8 @@ export async function updateShopStatus(
     })
 
     revalidatePath(`/shops/${shopId}`)
+    revalidatePath('/shops')
+    revalidatePath('/favorite')
     return { success: true, data: undefined }
   } catch {
     return { success: false, error: 'ステータスの更新に失敗しました' }
