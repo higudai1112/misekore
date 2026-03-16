@@ -35,7 +35,7 @@ export default function Footer({ avatarUrl }: FooterProps) {
 
   return (
     <footer className="fixed right-0 bottom-0 left-0 border-t bg-white">
-      <nav className="flex justify-around py-2 text-xs">
+      <nav className="flex justify-around py-2 text-xs sm:text-sm">
         {tabs.map((tab) => {
           // exact=true のタブは完全一致、それ以外は前方一致でアクティブ判定
           const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)
@@ -49,7 +49,7 @@ export default function Footer({ avatarUrl }: FooterProps) {
               {/* 設定タブかつプロフィール画像が設定されている場合はアバター画像を表示 */}
               {tab.href === '/settings' && avatarUrl ? (
                 <div
-                  className={`h-5 w-5 shrink-0 overflow-hidden rounded-full ${active ? 'ring-2 ring-emerald-600' : ''}`}
+                  className={`h-5 w-5 sm:h-6 sm:w-6 shrink-0 overflow-hidden rounded-full ${active ? 'ring-2 ring-emerald-600' : ''}`}
                 >
                   <img
                     src={avatarUrl}
@@ -60,7 +60,7 @@ export default function Footer({ avatarUrl }: FooterProps) {
                   />
                 </div>
               ) : (
-                <Icon className="h-5 w-5" />
+                <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
               )}
               <span>{tab.label}</span>
             </Link>

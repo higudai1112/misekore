@@ -11,14 +11,14 @@ export function ShopPhotos({
   // 写真が1枚もない場合はプレースホルダー領域を表示
   if (photos.length === 0) {
     return (
-      <div className="h-56 bg-muted flex items-center justify-center">
+      <div className="h-56 sm:h-64 md:h-80 bg-muted flex items-center justify-center">
         No Image
       </div>
     )
   }
 
   return (
-    <Swiper className="h-56">
+    <Swiper className="h-56 sm:h-64 md:h-80">
       {photos.map((p) => (
         <SwiperSlide key={p.id}>
           <img

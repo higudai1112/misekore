@@ -86,7 +86,7 @@ export function ShopDetailMap({ latitude, longitude, shopName }: ShopDetailMapPr
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
     if (!apiKey) {
         return (
-            <div className="flex h-64 sm:h-[280px] w-full items-center justify-center rounded-2xl bg-gray-50 p-4 text-center ring-1 ring-black/5">
+            <div className="flex h-64 sm:h-[280px] md:h-80 w-full items-center justify-center rounded-2xl bg-gray-50 p-4 text-center ring-1 ring-black/5">
                 <p className="font-semibold text-red-500">Google Maps API Keyが設定されていません</p>
             </div>
         )
@@ -94,14 +94,14 @@ export function ShopDetailMap({ latitude, longitude, shopName }: ShopDetailMapPr
 
     if (error) {
         return (
-            <div className="flex h-64 sm:h-[280px] w-full items-center justify-center rounded-2xl bg-gray-50 p-4 text-center ring-1 ring-black/5">
+            <div className="flex h-64 sm:h-[280px] md:h-80 w-full items-center justify-center rounded-2xl bg-gray-50 p-4 text-center ring-1 ring-black/5">
                 <p className="font-semibold text-red-500">{error}</p>
             </div>
         )
     }
 
     return (
-        <div className="relative h-64 sm:h-[280px] w-full overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5 bg-gray-50">
+        <div className="relative h-64 sm:h-[280px] md:h-80 w-full overflow-hidden rounded-2xl shadow-sm ring-1 ring-black/5 bg-gray-50">
             {/* 外部パッケージを介さず Google Maps JavaScript API を直接読み込む */}
             <Script
                 src={`https://maps.googleapis.com/maps/api/js?key=${apiKey}&v=weekly`}
