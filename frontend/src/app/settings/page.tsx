@@ -3,7 +3,7 @@ import { SettingItem } from "@/components/settings/SettingItem"
 import { signOut } from "@/lib/auth"
 
 export const metadata = {
-    title: "設定 | 店コレ",
+    title: "設定 | MISEKORE",
 }
 
 /**

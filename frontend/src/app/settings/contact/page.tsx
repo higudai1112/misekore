@@ -3,7 +3,7 @@ import { SettingsHeader } from "@/components/settings/SettingsHeader"
 import { ContactForm } from "./_components/ContactForm"
 
 export const metadata = {
-    title: "お問い合わせ | 店コレ",
+    title: "お問い合わせ | MISEKORE",
 }
 
 export default function ContactPage() {

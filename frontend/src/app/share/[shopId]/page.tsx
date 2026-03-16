@@ -21,22 +21,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const shop = await getCachedShop(shopId)
 
   if (!shop) {
-    return { title: 'お店が見つかりません | 店コレ' }
+    return { title: 'お店が見つかりません | MISEKORE' }
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
 
   return {
-    title: `${shop.name} | 店コレ`,
+    title: `${shop.name} | MISEKORE`,
     description: shop.address ?? shop.name,
     openGraph: {
-      title: `${shop.name} | 店コレ`,
+      title: `${shop.name} | MISEKORE`,
       description: shop.address ?? shop.name,
       images: appUrl ? [`${appUrl}/OGP.png`] : [],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${shop.name} | 店コレ`,
+      title: `${shop.name} | MISEKORE`,
       description: shop.address ?? shop.name,
       images: appUrl ? [`${appUrl}/OGP.png`] : [],
     },
@@ -61,7 +61,7 @@ export default async function ShareShopPage({ params }: Props) {
       {/* ヘッダー: ロゴ＋右側リンク */}
       <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
         <Link href="/" className="text-lg font-bold text-[#8fae8f]">
-          店コレ
+          MISEKORE
         </Link>
         {isLoggedIn ? (
           <Link

@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth"
 import { query } from "@/lib/db.server"
 
 export const metadata = {
-    title: "マップ | 店コレ",
+    title: "マップ | MISEKORE",
 }
 
 // Profileテーブルのavatarカラム取得用の型

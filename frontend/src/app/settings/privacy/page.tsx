@@ -1,7 +1,7 @@
 import { SettingsHeader } from "@/components/settings/SettingsHeader"
 
 export const metadata = {
-    title: "プライバシーポリシー | 店コレ",
+    title: "プライバシーポリシー | MISEKORE",
 }
 
 const sections = [
