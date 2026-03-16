@@ -29,6 +29,7 @@ export async function updateShop(shopId: string, formData: FormData) {
   const tags = Array.from(new Set(rawTags))
 
   try {
+    // 写真アップロード時はファイルパース等で時間がかかるため timeout を延長
     await prisma.$transaction(async (tx) => {
       // 所有権チェック（自分の UserShop レコードが存在するか）
       const userShop = await tx.userShop.findUnique({
@@ -63,7 +64,7 @@ export async function updateShop(shopId: string, formData: FormData) {
           data: { shopId, tagId: tag.id },
         })
       }
-    })
+    }, { timeout: 15000 })
 
     revalidatePath(`/shops/${shopId}`)
     revalidatePath('/shops')
