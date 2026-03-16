@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, useRef } from 'react'
 
 type SearchInputProps = {
     defaultValue?: string
@@ -11,16 +11,22 @@ export function SearchInput({ defaultValue = '' }: SearchInputProps) {
     const router = useRouter()
     const pathname = usePathname()
     const searchParams = useSearchParams()
+    // 300ms デバウンス: 入力のたびにDBクエリが走らないようにする
+    const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const handleChange = useCallback(
         (e: React.ChangeEvent<HTMLInputElement>) => {
-            const params = new URLSearchParams(searchParams.toString())
-            if (e.target.value) {
-                params.set('q', e.target.value)
-            } else {
-                params.delete('q')
-            }
-            router.replace(`${pathname}?${params.toString()}`)
+            const value = e.target.value
+            if (debounceTimer.current) clearTimeout(debounceTimer.current)
+            debounceTimer.current = setTimeout(() => {
+                const params = new URLSearchParams(searchParams.toString())
+                if (value) {
+                    params.set('q', value)
+                } else {
+                    params.delete('q')
+                }
+                router.replace(`${pathname}?${params.toString()}`)
+            }, 300)
         },
         [router, pathname, searchParams]
     )

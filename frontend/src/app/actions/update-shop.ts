@@ -68,6 +68,7 @@ export async function updateShop(shopId: string, formData: FormData) {
 
     revalidatePath(`/shops/${shopId}`)
     revalidatePath('/shops')
+    revalidatePath('/favorite')
     revalidatePath('/map')
 
     // 写真を S3 にアップロードし、ShopPhoto テーブルに保存（トランザクション外）

@@ -21,6 +21,7 @@ export async function deleteShop(shopId: string): Promise<ActionResult> {
     }
 
     revalidatePath('/shops')
+    revalidatePath('/favorite')
     revalidatePath('/map')
     return { success: true, data: undefined }
   } catch {
