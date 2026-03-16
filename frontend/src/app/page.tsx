@@ -1,6 +1,38 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import { type Metadata } from 'next'
 import { Button } from '@/components/ui/button'
+
+// トップページ固定OGP（SNS共有時にアプリ紹介が表示されるように設定）
+export const metadata: Metadata = {
+  title: 'お店選びに迷わない',
+  description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困らない。',
+  alternates: {
+    canonical: 'https://misekore.com',
+  },
+  openGraph: {
+    type: 'website',
+    url: 'https://misekore.com',
+    siteName: 'MISEKORE',
+    locale: 'ja_JP',
+    title: 'お店選びに迷わない',
+    description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困らない。',
+    images: [
+      {
+        url: '/OGP.png', // metadataBase で解決 → https://misekore.com/OGP.png
+        width: 1200,
+        height: 630,
+        alt: 'MISEKORE｜行く店、即答できる',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'お店選びに迷わない',
+    description: '行きたいお店を整理して、地図上で確認できるアプリ。おすすめのお店を聞かれても、もう困らない。',
+    images: ['/OGP.png'],
+  },
+}
 
 // アプリ起動直後に表示されるトップページ（タイトルとログイン/登録への動線を持つ）
 export default function TitlePage() {
