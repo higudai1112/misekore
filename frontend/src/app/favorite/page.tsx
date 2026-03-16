@@ -5,6 +5,7 @@ import { auth } from '@/lib/auth'
 import { getFavoriteShops } from '@/lib/shop'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { TagFilteredShopList } from '@/app/shops/_components/tag-filtered-shop-list'
+import { formatAddress } from '@/lib/utils'
 
 // お気に入り一覧ページ (Server Component)
 export default async function FavoritePage() {
@@ -16,7 +17,7 @@ export default async function FavoritePage() {
   const favoriteShops = rawShops.map((shop) => ({
     id: shop.id,
     name: shop.name,
-    walk: shop.address ?? '',
+    walk: formatAddress(shop.address ?? ''),
     tags: shop.tags,
     imageURL: '',
     status: 'favorite' as const,
