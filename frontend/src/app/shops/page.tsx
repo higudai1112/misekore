@@ -6,6 +6,7 @@ import { ShopList } from './_components/shop-list'
 import { SearchInput } from './_components/search-input'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { getAllShopsForList } from '@/lib/shop'
+import { formatAddress } from '@/lib/utils'
 
 type Props = {
   searchParams: Promise<{ q?: string }>
@@ -40,7 +41,7 @@ export default async function ShopsPage({ searchParams }: Props) {
           <ShopList shops={shops.map((s) => ({
             id: s.id,
             name: s.name,
-            walk: s.address ?? '',
+            walk: formatAddress(s.address ?? ''),
             tags: s.tags,
             imageURL: '',
             status: s.status.toLowerCase() as 'want' | 'visited' | 'favorite',

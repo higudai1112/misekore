@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { notFound, redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
 import { getShopDetail } from '@/lib/shop'
+import { formatAddress } from '@/lib/utils'
 
 import ShopHeader from '../_components/ShopHeader'
 import { ShopPhotos } from '../_components/ShopPhotos'
@@ -85,7 +86,7 @@ export default async function ShopDetailPage({
                 />
               )}
               {shop.address && (
-                <p className="text-sm text-gray-600">{shop.address}</p>
+                <p className="text-sm text-gray-600">{formatAddress(shop.address)}</p>
               )}
             </div>
           ) : null}
