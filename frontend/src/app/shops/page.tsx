@@ -5,7 +5,7 @@ import { auth } from '@/lib/auth'
 import { ShopList } from './_components/shop-list'
 import { SearchInput } from './_components/search-input'
 import { AppLayout } from '@/components/layout/AppLayout'
-import { getAllShopsForList } from '@/lib/shop'
+import { getCachedShopsForList } from '@/lib/shop'
 import { formatAddress } from '@/lib/utils'
 
 type Props = {
@@ -19,8 +19,8 @@ export default async function ShopsPage({ searchParams }: Props) {
   const { q } = await searchParams
   const query = q?.trim() || undefined
 
-  // 認証済みユーザーの ID を渡してお店一覧を取得（検索クエリでフィルタリング）
-  const shops = await getAllShopsForList(session.user.id, query)
+  // キャッシュ付きでお店一覧を取得（ミューテーション時に revalidateTag で即時無効化される）
+  const shops = await getCachedShopsForList(session.user.id, query)
 
   return (
     <AppLayout>
@@ -43,7 +43,7 @@ export default async function ShopsPage({ searchParams }: Props) {
             name: s.name,
             walk: formatAddress(s.address ?? ''),
             tags: s.tags,
-            imageURL: '',
+            imageURL: s.coverImageUrl ?? '',
             status: s.status.toLowerCase() as 'want' | 'visited' | 'favorite',
           }))} />
         </div>
