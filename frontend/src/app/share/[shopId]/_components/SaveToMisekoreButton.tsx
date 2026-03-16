@@ -1,6 +1,6 @@
 'use client'
 
-// 「店コレで保存する」ボタン（未ログイン→会員登録、ログイン済み→お店登録画面へ誘導）
+// 「MISEKOREで保存する」ボタン（未ログイン→会員登録、ログイン済み→お店登録画面へ誘導）
 import { useRouter } from 'next/navigation'
 
 type SaveToMisekoreButtonProps = {
@@ -32,7 +32,7 @@ export function SaveToMisekoreButton({ shopId, placeId, isLoggedIn }: SaveToMise
       onClick={handleSave}
       className="w-full rounded-2xl bg-[#8fae8f] py-3.5 text-base font-semibold text-white shadow-sm hover:bg-[#7b997b] active:scale-95 transition-all"
     >
-      店コレで保存する
+      MISEKOREで保存する
     </button>
   )
 }

@@ -56,7 +56,7 @@ export default function TitlePage() {
         <div className="mx-auto mb-6 w-fit drop-shadow-lg">
           <Image
             src="/new_icon.png"
-            alt="店コレ"
+            alt="MISEKORE"
             width={120}
             height={120}
             className="rounded-[28px]"

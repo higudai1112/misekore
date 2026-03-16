@@ -3,7 +3,7 @@ import { CheckCircle } from "lucide-react"
 import { SettingsHeader } from "@/components/settings/SettingsHeader"
 
 export const metadata = {
-    title: "送信完了 | 店コレ",
+    title: "送信完了 | MISEKORE",
 }
 
 /**

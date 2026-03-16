@@ -17,7 +17,7 @@ export function ShareButton({ shopId, shopName }: ShareButtonProps) {
       try {
         await navigator.share({
           title: shopName,
-          text: `${shopName} を店コレで見る`,
+          text: `${shopName} をMISEKOREで見る`,
           url: shareUrl,
         })
       } catch (err) {

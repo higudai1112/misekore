@@ -7,7 +7,7 @@ import { EmailChangeForm } from "./_components/EmailChangeForm"
 import { DeleteAccountButton } from "./_components/DeleteAccountButton"
 
 export const metadata = {
-    title: "アカウント管理 | 店コレ",
+    title: "アカウント管理 | MISEKORE",
 }
 
 export default async function AccountPage() {

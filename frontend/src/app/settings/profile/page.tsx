@@ -7,7 +7,7 @@ import { AvatarUploadForm } from "./_components/AvatarUploadForm"
 import type { QueryResultRow } from "pg"
 
 export const metadata = {
-    title: "プロフィール | 店コレ",
+    title: "プロフィール | MISEKORE",
 }
 
 type ProfileRow = QueryResultRow & { name: string | null; avatarUrl: string | null }

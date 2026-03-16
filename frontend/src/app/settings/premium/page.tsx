@@ -4,7 +4,7 @@ import { getUserPlan } from '@/lib/freemium'
 import { Check } from 'lucide-react'
 
 export const metadata = {
-    title: 'プレミアムプラン | 店コレ',
+    title: 'プレミアムプラン | MISEKORE',
 }
 
 // プレミアムプラン紹介・登録ページ
