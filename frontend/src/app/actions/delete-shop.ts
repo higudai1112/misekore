@@ -2,7 +2,8 @@
 
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
+import { shopsCacheTag, favoritesCacheTag } from '@/lib/shop'
 import type { ActionResult } from '@/lib/action-result'
 
 export async function deleteShop(shopId: string): Promise<ActionResult> {
@@ -23,6 +24,8 @@ export async function deleteShop(shopId: string): Promise<ActionResult> {
     revalidatePath('/shops')
     revalidatePath('/favorite')
     revalidatePath('/map')
+    revalidateTag(shopsCacheTag(userId), 'max')
+    revalidateTag(favoritesCacheTag(userId), 'max')
     return { success: true, data: undefined }
   } catch {
     return { success: false, error: '削除に失敗しました' }

@@ -3,8 +3,9 @@
 import { prisma } from '@/lib/prisma'
 import { query } from '@/lib/db.server'
 import { auth } from '@/lib/auth'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { uploadToS3 } from '@/lib/storage.server'
+import { shopsCacheTag, favoritesCacheTag } from '@/lib/shop'
 import type { ShopStatus } from '@/types/shop'
 
 export async function updateShop(shopId: string, formData: FormData) {
@@ -70,6 +71,8 @@ export async function updateShop(shopId: string, formData: FormData) {
     revalidatePath('/shops')
     revalidatePath('/favorite')
     revalidatePath('/map')
+    revalidateTag(shopsCacheTag(userId), 'max')
+    revalidateTag(favoritesCacheTag(userId), 'max')
 
     // 写真を S3 にアップロードし、ShopPhoto テーブルに保存（トランザクション外）
     const photos = formData.getAll('photos') as File[]

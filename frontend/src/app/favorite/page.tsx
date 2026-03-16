@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { redirect } from 'next/navigation'
 import { auth } from '@/lib/auth'
-import { getFavoriteShops } from '@/lib/shop'
+import { getCachedFavoriteShops } from '@/lib/shop'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { TagFilteredShopList } from '@/app/shops/_components/tag-filtered-shop-list'
 import { formatAddress } from '@/lib/utils'
@@ -12,14 +12,14 @@ export default async function FavoritePage() {
   const session = await auth()
   if (!session?.user?.id) redirect('/')
 
-  // 認証済みユーザーの ID を渡してお気に入りのお店を取得
-  const rawShops = await getFavoriteShops(session.user.id)
+  // キャッシュ付きでお気に入りのお店を取得（ミューテーション時に revalidateTag で即時無効化される）
+  const rawShops = await getCachedFavoriteShops(session.user.id)
   const favoriteShops = rawShops.map((shop) => ({
     id: shop.id,
     name: shop.name,
     walk: formatAddress(shop.address ?? ''),
     tags: shop.tags,
-    imageURL: '',
+    imageURL: shop.coverImageUrl ?? '',
     status: 'favorite' as const,
   }))
 

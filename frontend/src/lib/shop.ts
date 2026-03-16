@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { unstable_cache } from 'next/cache'
 
 // お店詳細ページで表示するデータを取得する
 // userId を引数で受け取ることで user-1 ハードコードを排除
@@ -62,6 +63,8 @@ export async function getAllShopsForList(userId: string, query?: string) {
       shop: {
         include: {
           shopTags: { include: { tag: true } },
+          // カード表示用にカバー画像を1枚だけ取得
+          shopPhotos: { where: { userId }, take: 1, orderBy: { createdAt: 'asc' } },
         },
       },
     },
@@ -73,7 +76,21 @@ export async function getAllShopsForList(userId: string, query?: string) {
     address: us.shop.address,
     status: us.status,
     tags: us.shop.shopTags.map((st) => st.tag.name),
+    coverImageUrl: us.shop.shopPhotos[0]?.imageUrl ?? null,
   }))
+}
+
+// お店一覧のキャッシュタグ（Server Action での revalidateTag に使用）
+export const shopsCacheTag = (userId: string) => `user-${userId}-shops`
+
+// unstable_cache でPrismaクエリをユーザー別にキャッシュ（60秒TTL）
+// ミューテーション時は revalidateTag(shopsCacheTag(userId)) で即時無効化する
+export function getCachedShopsForList(userId: string, searchQuery?: string) {
+  return unstable_cache(
+    () => getAllShopsForList(userId, searchQuery),
+    ['shops-list', userId, searchQuery ?? ''],
+    { revalidate: 60, tags: [shopsCacheTag(userId)] }
+  )()
 }
 
 // 共有ページ（/share/[shopId]）で公開表示するお店情報を取得する
@@ -137,6 +154,8 @@ export async function getFavoriteShops(userId: string) {
       shop: {
         include: {
           shopTags: { include: { tag: true } },
+          // カード表示用にカバー画像を1枚だけ取得
+          shopPhotos: { where: { userId }, take: 1, orderBy: { createdAt: 'asc' } },
         },
       },
     },
@@ -148,5 +167,18 @@ export async function getFavoriteShops(userId: string) {
     address: us.shop.address,
     status: us.status,
     tags: us.shop.shopTags.map((st) => st.tag.name),
+    coverImageUrl: us.shop.shopPhotos[0]?.imageUrl ?? null,
   }))
+}
+
+// お気に入りのキャッシュタグ（Server Action での revalidateTag に使用）
+export const favoritesCacheTag = (userId: string) => `user-${userId}-favorites`
+
+// unstable_cache でPrismaクエリをユーザー別にキャッシュ（60秒TTL）
+export function getCachedFavoriteShops(userId: string) {
+  return unstable_cache(
+    () => getFavoriteShops(userId),
+    ['favorite-shops', userId],
+    { revalidate: 60, tags: [favoritesCacheTag(userId)] }
+  )()
 }

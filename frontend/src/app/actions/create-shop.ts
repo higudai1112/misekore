@@ -3,7 +3,8 @@
 import { pool, query } from '@/lib/db.server'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
+import { shopsCacheTag, favoritesCacheTag } from '@/lib/shop'
 import { randomUUID } from 'crypto'
 import { uploadToS3 } from '@/lib/storage.server'
 import type { ShopStatus } from '@/types/shop'
@@ -153,5 +154,7 @@ export async function createShop(
   // 一覧・お気に入りのキャッシュを無効化してから遷移
   revalidatePath('/shops')
   revalidatePath('/favorite')
+  revalidateTag(shopsCacheTag(userId), 'max')
+  revalidateTag(favoritesCacheTag(userId), 'max')
   redirect('/shops')
 }

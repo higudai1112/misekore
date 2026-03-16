@@ -2,7 +2,8 @@
 
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
+import { shopsCacheTag, favoritesCacheTag } from '@/lib/shop'
 import type { ShopStatus } from '@/types/shop'
 import type { ActionResult } from '@/lib/action-result'
 
@@ -28,6 +29,8 @@ export async function updateShopStatus(
     revalidatePath(`/shops/${shopId}`)
     revalidatePath('/shops')
     revalidatePath('/favorite')
+    revalidateTag(shopsCacheTag(userId), 'max')
+    revalidateTag(favoritesCacheTag(userId), 'max')
     return { success: true, data: undefined }
   } catch {
     return { success: false, error: 'ステータスの更新に失敗しました' }
