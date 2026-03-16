@@ -47,7 +47,10 @@ export default async function FavoritePage() {
           </div>
 
           {/* お気に入りのお店一覧をページネーションつきで表示 */}
-          <TagFilteredShopList shops={favoriteShops} />
+          <TagFilteredShopList
+            shops={favoriteShops}
+            emptyMessage="誰かにおすすめできるお店を追加しましょう"
+          />
         </div>
       </main>
     </AppLayout>

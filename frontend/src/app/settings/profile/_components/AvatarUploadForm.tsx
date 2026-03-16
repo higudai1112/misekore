@@ -2,8 +2,9 @@
 
 import { useRef, useState, useTransition } from 'react'
 import { toast } from 'sonner'
-import { Camera } from 'lucide-react'
+import { Camera, Trash2 } from 'lucide-react'
 import { updateAvatar } from '@/app/actions/update-avatar'
+import { removeAvatar } from '@/app/actions/remove-avatar'
 
 interface AvatarUploadFormProps {
   currentAvatarUrl: string | null
@@ -39,6 +40,19 @@ export function AvatarUploadForm({ currentAvatarUrl, currentName }: AvatarUpload
         // 失敗時は元の画像に戻す
         setPreviewUrl(currentAvatarUrl)
         toast.error(result.error ?? '更新に失敗しました')
+      }
+    })
+  }
+
+  // プロフィール画像を削除してイニシャル表示に戻す
+  const handleRemoveAvatar = () => {
+    startTransition(async () => {
+      const result = await removeAvatar()
+      if (result.success) {
+        setPreviewUrl(null)
+        toast.success('プロフィール画像を削除しました')
+      } else {
+        toast.error(result.error ?? '削除に失敗しました')
       }
     })
   }
@@ -97,6 +111,19 @@ export function AvatarUploadForm({ currentAvatarUrl, currentName }: AvatarUpload
       />
 
       <p className="text-xs text-gray-400">タップして画像を変更（5MB以下）</p>
+
+      {/* 画像が設定されている場合のみ「画像を削除」ボタンを表示 */}
+      {previewUrl && (
+        <button
+          type="button"
+          onClick={handleRemoveAvatar}
+          disabled={isPending}
+          className="flex items-center gap-1 text-xs text-red-500 hover:text-red-700 disabled:opacity-50"
+        >
+          <Trash2 className="h-3 w-3" />
+          画像を削除
+        </button>
+      )}
     </div>
   )
 }

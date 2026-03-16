@@ -126,9 +126,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
     },
     // トークン生成時、DBのユーザーIDをJWTトークンに含める
+    // rememberMe が true の場合は有効期限を30日、false の場合は24時間に設定する
     jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        const rememberMe = (user as { rememberMe?: boolean }).rememberMe
+        token.exp = Math.floor(Date.now() / 1000) + (rememberMe ? 30 * 24 * 60 * 60 : 24 * 60 * 60)
       }
       return token
     },
@@ -169,6 +172,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           label: 'Password',
           type: 'password',
         },
+        rememberMe: {
+          label: 'Remember Me',
+          type: 'text',
+        },
       },
       // ユーザーの入力情報を受け取り、DBと照合して認証を行う関数
       async authorize(credentials) {
@@ -176,6 +183,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const email = credentials.email as string
         const password = credentials.password as string
+        const rememberMe = credentials.rememberMe === 'true'
 
         try {
           // DBからメールアドレスに一致するユーザーを検索
@@ -206,11 +214,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           if (!isValid) return null
 
-          // 認証成功時、NextAuthに返すユーザー情報
+          // 認証成功時、NextAuthに返すユーザー情報（rememberMe フラグを含める）
           return {
             id: user.id,
             email: user.email,
             name: user.name ?? undefined,
+            rememberMe,
           }
         } catch (error) {
           console.error('Auth check error:', error)

@@ -163,6 +163,14 @@ export default function SignupPage() {
             Appleで登録
           </button>
         </div>
+
+        {/* ログインへのリンク */}
+        <p className="mt-6 text-center text-sm text-gray-500">
+          すでにアカウントをお持ちの方は{' '}
+          <Link href="/login" className="font-medium text-[#8fae8f] hover:underline">
+            ログイン
+          </Link>
+        </p>
       </div>
     </main>
   )
