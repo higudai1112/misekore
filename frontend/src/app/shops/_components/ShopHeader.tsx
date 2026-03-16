@@ -18,6 +18,7 @@ type ShopHeaderProps = {
     status: ShopStatus
     rating: number | null
     tags: { id: string; name: string }[]
+    photos: { id: string; url: string }[]
   }
 }
 
@@ -43,6 +44,7 @@ export default function ShopHeader({ shop }: ShopHeaderProps) {
           defaultMemo={shop.memo || ''}
           defaultStatus={shop.status}
           defaultTags={shop.tags.map(t => t.name)}
+          photos={shop.photos}
         />
       </div>
     </header>

@@ -1,9 +1,11 @@
 'use server'
 
 import { prisma } from '@/lib/prisma'
+import { query } from '@/lib/db.server'
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { uploadToS3 } from '@/lib/storage.server'
 import type { ShopStatus } from '@/types/shop'
 import type { ActionResult } from '@/lib/action-result'
 
@@ -65,8 +67,10 @@ export async function createManualShop(
 
   const tags = formData.getAll('tags[]') as string[]
 
+  let shopId: string
+
   try {
-    await prisma.$transaction(async (tx) => {
+    shopId = await prisma.$transaction(async (tx) => {
       // 手動登録のため source='manual'、placeId は null
       const shop = await tx.shop.create({
         data: { name, address, lat, lng, source: 'manual' },
@@ -88,9 +92,24 @@ export async function createManualShop(
           data: { shopId: shop.id, tagId: tag.id },
         })
       }
+
+      return shop.id
     })
   } catch {
     return { success: false, error: '登録に失敗しました' }
+  }
+
+  // 写真を S3 にアップロードし、ShopPhoto テーブルに保存（トランザクション外）
+  const photos = formData.getAll('photos') as File[]
+  for (const photo of photos) {
+    if (photo.size > 0) {
+      const imageUrl = await uploadToS3(photo)
+      await query(
+        `INSERT INTO "ShopPhoto" (id, "shopId", "userId", "imageUrl", "createdAt")
+         VALUES (gen_random_uuid(), $1, $2, $3, NOW())`,
+        [shopId, userId, imageUrl]
+      )
+    }
   }
 
   revalidatePath('/shops')

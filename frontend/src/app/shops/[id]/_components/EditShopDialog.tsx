@@ -9,9 +9,10 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog'
-import { Pencil } from 'lucide-react'
+import { Pencil, X } from 'lucide-react'
 import { updateShop } from '@/app/actions/update-shop'
 import { deleteShop } from '@/app/actions/delete-shop'
+import { deleteShopPhoto } from '@/app/actions/delete-shop-photo'
 import { toast } from 'sonner'
 import type { ShopStatus } from '@/types/shop'
 
@@ -21,6 +22,7 @@ export type EditShopProps = {
     defaultMemo: string
     defaultStatus: ShopStatus
     defaultTags: string[]
+    photos: { id: string; url: string }[]
 }
 
 export function EditShopDialog({
@@ -29,6 +31,7 @@ export function EditShopDialog({
     defaultMemo,
     defaultStatus,
     defaultTags,
+    photos: initialPhotos,
 }: EditShopProps) {
     const router = useRouter()
     const [isOpen, setIsOpen] = useState(false)
@@ -39,6 +42,20 @@ export function EditShopDialog({
     const [status, setStatus] = useState<ShopStatus>(defaultStatus)
     const [tagsInput, setTagsInput] = useState(defaultTags.join(', '))
     const [error, setError] = useState<string | null>(null)
+    // 既存写真（楽観的に削除するためローカル管理）
+    const [photos, setPhotos] = useState(initialPhotos)
+
+    // 既存写真の削除（楽観的UI更新）
+    const handleDeletePhoto = async (photoId: string) => {
+        setPhotos(prev => prev.filter(p => p.id !== photoId))
+        try {
+            await deleteShopPhoto(photoId, shopId)
+        } catch {
+            // 失敗時は元に戻す
+            setPhotos(initialPhotos)
+            toast.error('写真の削除に失敗しました')
+        }
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -60,6 +77,14 @@ export function EditShopDialog({
         formData.append('memo', memo)
         formData.append('status', status)
         formData.append('tags', tagsInput)
+
+        // 新規写真ファイルを FormData に追加
+        const fileInput = (e.target as HTMLFormElement).querySelector<HTMLInputElement>('input[name="photos"]')
+        if (fileInput?.files) {
+            for (const file of Array.from(fileInput.files)) {
+                formData.append('photos', file)
+            }
+        }
 
         startTransition(async () => {
             try {
@@ -194,6 +219,42 @@ export function EditShopDialog({
                             onChange={(e) => setMemo(e.target.value)}
                             className="w-full resize-none rounded-xl border border-gray-200 bg-white p-3 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                             placeholder="感想など..."
+                        />
+                    </div>
+
+                    {/* 写真管理 */}
+                    <div className="space-y-2">
+                        <div className="block text-sm font-semibold text-gray-700">写真</div>
+                        {/* 既存写真サムネイル */}
+                        {photos.length > 0 && (
+                            <div className="flex flex-wrap gap-2">
+                                {photos.map(photo => (
+                                    <div key={photo.id} className="relative h-16 w-16 rounded-lg overflow-hidden">
+                                        <img
+                                            src={photo.url}
+                                            alt="写真"
+                                            className="h-full w-full object-cover"
+                                        />
+                                        {/* 削除ボタン */}
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeletePhoto(photo.id)}
+                                            className="absolute right-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                                            aria-label="写真を削除"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {/* 新規写真追加 */}
+                        <input
+                            type="file"
+                            name="photos"
+                            multiple
+                            accept="image/*"
+                            className="w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-100 file:px-3 file:py-1.5 file:text-sm file:font-medium hover:file:bg-gray-200"
                         />
                     </div>
 

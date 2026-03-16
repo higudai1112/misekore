@@ -39,6 +39,7 @@ export default async function ShopDetailPage({
       <div className="pb-40 px-4 sm:px-6 lg:px-10">
         <div className="mx-auto w-full max-w-2xl space-y-6">
 
+          {/* ShopHeader には photos も渡す（EditShopDialog での写真管理に使用） */}
           <ShopHeader shop={shop} />
 
           {/* 写真 */}
