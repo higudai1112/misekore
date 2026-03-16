@@ -24,6 +24,8 @@ export const authConfig = {
                 nextUrl.pathname === '/settings/terms' ||
                 nextUrl.pathname === '/settings/contact' ||
                 nextUrl.pathname === '/settings/contact/thanks' ||
+                nextUrl.pathname === '/forgot-password' ||
+                nextUrl.pathname.startsWith('/reset-password') ||
                 nextUrl.pathname.startsWith('/share/') // お店共有ページは未ログインでも閲覧可能
 
             if (isOnPublicPage) {

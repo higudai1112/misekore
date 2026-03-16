@@ -6,9 +6,10 @@ import { RestaurantCard, type Restaurant } from './restaurant-card'
 type TagFilteredShopListProps = {
     shops: Restaurant[]
     children?: React.ReactNode // For injecting tabs or other headers above the tags
+    emptyMessage?: string // お店が0件の場合に表示するメッセージ
 }
 
-export function TagFilteredShopList({ shops, children }: TagFilteredShopListProps) {
+export function TagFilteredShopList({ shops, children, emptyMessage = '該当するお店が見つかりません' }: TagFilteredShopListProps) {
     const [selectedTag, setSelectedTag] = useState<string | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
 
@@ -83,7 +84,7 @@ export function TagFilteredShopList({ shops, children }: TagFilteredShopListProp
                 </div>
             ) : (
                 <div className="py-12 text-center text-gray-500">
-                    該当するお店が見つかりません
+                    {emptyMessage}
                 </div>
             )}
 

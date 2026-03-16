@@ -15,6 +15,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isPending, setIsPending] = useState(false)
 
@@ -31,6 +32,7 @@ export default function LoginPage() {
       const result = await signIn('credentials', {
         email,
         password,
+        rememberMe: rememberMe ? 'true' : 'false',
         redirect: false,
       })
 
@@ -103,6 +105,27 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* ログイン維持チェックボックス */}
+          <div className="flex items-center gap-2">
+            <input
+              id="rememberMe"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="h-4 w-4 rounded border-gray-300 accent-[#8fae8f]"
+            />
+            <Label htmlFor="rememberMe" className="cursor-pointer text-sm font-normal">
+              ログインを維持する
+            </Label>
+          </div>
+
+          {/* パスワード再設定リンク */}
+          <div className="text-right">
+            <Link href="/forgot-password" className="text-sm text-gray-500 hover:text-gray-700 hover:underline">
+              パスワードをお忘れの方
+            </Link>
+          </div>
+
           {error && (
             <p className="text-sm text-red-500">{error}</p>
           )}
@@ -146,6 +169,14 @@ export default function LoginPage() {
             Appleでログイン
           </button>
         </div>
+
+        {/* 新規登録へのリンク */}
+        <p className="mt-6 text-center text-sm text-gray-500">
+          アカウントをお持ちでない方は{' '}
+          <Link href="/signup" className="font-medium text-[#8fae8f] hover:underline">
+            アカウント登録
+          </Link>
+        </p>
       </div>
     </main>
   )
