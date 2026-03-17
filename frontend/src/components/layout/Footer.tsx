@@ -6,12 +6,12 @@ import { useEffect, useState } from 'react'
 import { UtensilsCrossed, Heart, PlusCircle, MapPin, Settings } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
-const tabs: { href: string; label: string; icon: LucideIcon; exact?: boolean }[] = [
-  { href: '/shops', label: 'お店一覧', icon: UtensilsCrossed },
-  { href: '/favorite', label: 'お気に入り', icon: Heart },
-  { href: '/shops/new', label: '登録', icon: PlusCircle, exact: true },
-  { href: '/map', label: '地図', icon: MapPin },
-  { href: '/settings', label: '設定', icon: Settings },
+const tabs: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: '/shops',     label: 'お店',      icon: UtensilsCrossed },
+  { href: '/favorite',  label: 'お気に入り', icon: Heart },
+  { href: '/shops/new', label: '登録',      icon: PlusCircle },
+  { href: '/map',       label: '地図',      icon: MapPin },
+  { href: '/settings',  label: '設定',      icon: Settings },
 ]
 
 interface FooterProps {
@@ -35,16 +35,16 @@ export default function Footer({ avatarUrl }: FooterProps) {
 
   return (
     <footer className="fixed right-0 bottom-0 left-0 border-t bg-white">
-      <nav className="flex justify-around py-2 text-xs sm:text-sm">
+      <nav className="flex py-2">
         {tabs.map((tab) => {
-          // exact=true のタブは完全一致、それ以外は前方一致でアクティブ判定
-          const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)
+          // パス完全一致でアクティブ判定（/shops/new にいるとき /shops タブが点灯しないよう）
+          const active = pathname === tab.href
           const Icon = tab.icon
           return (
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-col items-center gap-0.5 ${active ? 'font-medium text-emerald-600' : 'text-gray-500'}`}
+              className={`flex flex-1 min-w-0 flex-col items-center gap-0.5 ${active ? 'font-medium text-emerald-600' : 'text-gray-500'}`}
             >
               {/* 設定タブかつプロフィール画像が設定されている場合はアバター画像を表示 */}
               {tab.href === '/settings' && avatarUrl ? (
@@ -62,7 +62,8 @@ export default function Footer({ avatarUrl }: FooterProps) {
               ) : (
                 <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
               )}
-              <span>{tab.label}</span>
+              {/* 小画面でもはみ出さないよう truncate と小フォント */}
+              <span className="truncate text-[11px] sm:text-xs">{tab.label}</span>
             </Link>
           )
         })}
