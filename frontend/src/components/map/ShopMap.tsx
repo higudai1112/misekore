@@ -16,6 +16,8 @@ interface ShopMarker {
     lat: number
     lng: number
     status: "WANT" | "VISITED" | "FAVORITE"
+    tags: string[]
+    coverImageUrl: string | null
 }
 
 interface Props {
@@ -197,7 +199,7 @@ export function ShopMap({ avatarUrl }: Props) {
                         zoom: 12,
                         mapId: "MISEKORE_MAP_ID", // AdvancedMarkerElementに必要
                         disableDefaultUI: true,   // MVPでUIをすっきりさせる
-                        zoomControl: true,
+                        zoomControl: false,  // カスタムズームボタンに置き換えるため無効化
                         gestureHandling: "greedy", // モバイル操作を自然にするため
                     })
                     mapInstanceRef.current = map
@@ -303,10 +305,11 @@ export function ShopMap({ avatarUrl }: Props) {
                         // ----------------------------------------
                         // DOM要素を使用してカスタムHTMLポップアップを組み立てる
                         // （InfoWindowは使わず、div要素で自由にデザイン）
+                        // vertical レイアウト: 店名 → 画像 → タグ → ステータス
                         // ----------------------------------------
                         const popup = document.createElement("div")
-                        // Tailwindクラス適用: 幅240px, 白背景, 丸角xl, 影lg, hoverで微変化
-                        popup.className = "absolute bottom-full left-1/2 mb-3 flex w-[240px] -translate-x-1/2 cursor-pointer items-center justify-between rounded-xl bg-white p-3 shadow-lg ring-1 ring-black/5 transition-all hover:bg-gray-50 active:scale-95"
+                        // w-64 = 256px, flex-col, 白背景, 丸角xl, 影md
+                        popup.className = "absolute bottom-full left-1/2 mb-3 flex w-64 -translate-x-1/2 cursor-pointer flex-col rounded-xl bg-white p-3 shadow-lg ring-1 ring-black/5 transition-all hover:bg-gray-50 active:scale-95"
 
                         // ポップアップクリックで詳細画面へ遷移
                         popup.addEventListener("click", (e) => {
@@ -314,43 +317,63 @@ export function ShopMap({ avatarUrl }: Props) {
                             router.push(`/shops/${shop.id}`)
                         })
 
-                        // 左側（テキストコンテナ）
-                        const textContainer = document.createElement("div")
-                        textContainer.className = "flex flex-col gap-1 overflow-hidden"
-
-                        // 店名表示
+                        // 店名表示（2行まで）
                         const nameEl = document.createElement("div")
-                        nameEl.className = "truncate text-[15px] font-semibold text-gray-900"
+                        nameEl.className = "overflow-hidden font-semibold text-base text-gray-900"
+                        nameEl.style.display = "-webkit-box"
+                        nameEl.style.webkitLineClamp = "2"
+                        nameEl.style.webkitBoxOrient = "vertical"
                         nameEl.textContent = shop.name
 
-                        // ステータス表示
+                        // 画像エリア（h-32, object-cover）
+                        const imageWrapper = document.createElement("div")
+                        imageWrapper.className = "mt-2 h-32 overflow-hidden rounded-lg bg-gray-100"
+
+                        if (shop.coverImageUrl) {
+                            // カバー画像を表示
+                            const img = document.createElement("img")
+                            img.src = shop.coverImageUrl
+                            img.alt = shop.name
+                            img.className = "h-full w-full object-cover"
+                            imageWrapper.appendChild(img)
+                        } else {
+                            // 写真なしプレースホルダー
+                            const placeholder = document.createElement("div")
+                            placeholder.className = "flex h-full items-center justify-center text-xs text-gray-400"
+                            placeholder.textContent = "写真なし"
+                            imageWrapper.appendChild(placeholder)
+                        }
+
+                        popup.appendChild(nameEl)
+                        popup.appendChild(imageWrapper)
+
+                        // タグ行（タグがある場合のみ表示、最大2件）
+                        if (shop.tags.length > 0) {
+                            const tagsRow = document.createElement("div")
+                            tagsRow.className = "mt-2 flex flex-wrap gap-1"
+                            shop.tags.forEach((tagName) => {
+                                const tag = document.createElement("span")
+                                tag.className = "rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600"
+                                tag.textContent = tagName
+                                tagsRow.appendChild(tag)
+                            })
+                            popup.appendChild(tagsRow)
+                        }
+
+                        // ステータス表示（text-gray-500 一律）
                         const statusEl = document.createElement("div")
-                        let statusColorClass = ""
                         let statusText = ""
                         if (shop.status === "WANT") {
-                            statusColorClass = "text-blue-600"
                             statusText = "行きたい"
                         } else if (shop.status === "VISITED") {
-                            statusColorClass = "text-gray-500"
                             statusText = "行った"
                         } else if (shop.status === "FAVORITE") {
-                            statusColorClass = "text-red-600"
                             statusText = "お気に入り"
                         }
-                        statusEl.className = `text-xs font-medium ${statusColorClass}`
+                        statusEl.className = "mt-1 text-sm font-medium text-gray-700"
                         statusEl.textContent = statusText
 
-                        textContainer.appendChild(nameEl)
-                        textContainer.appendChild(statusEl)
-
-                        // 右側（→アイコン）
-                        const iconContainer = document.createElement("div")
-                        iconContainer.className = "ml-2 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-50 text-gray-400"
-                        // 右矢印アイコン
-                        iconContainer.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="h-4 w-4"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" /></svg>`
-
-                        popup.appendChild(textContainer)
-                        popup.appendChild(iconContainer)
+                        popup.appendChild(statusEl)
 
                         // ピンのコンテナに追加する
                         container.appendChild(popup)
@@ -377,6 +400,20 @@ export function ShopMap({ avatarUrl }: Props) {
             isMounted = false
         }
     }, [shops, isApiLoaded, router])
+
+    // マップをズームインする
+    const handleZoomIn = () => {
+        const map = mapInstanceRef.current as any
+        if (!map) return
+        map.setZoom(map.getZoom() + 1)
+    }
+
+    // マップをズームアウトする
+    const handleZoomOut = () => {
+        const map = mapInstanceRef.current as any
+        if (!map) return
+        map.setZoom(map.getZoom() - 1)
+    }
 
     // 現在地を取得してマーカー・円の表示・マップ移動をまとめて行う
     const handleCurrentLocation = () => {
@@ -436,33 +473,50 @@ export function ShopMap({ avatarUrl }: Props) {
                 onError={() => setError("Google Maps APIの読み込みに失敗しました")}
             />
 
-            {/* 現在地取得ボタン（MVP） */}
-            <button
-                onClick={handleCurrentLocation}
-                className="absolute bottom-4 right-4 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                aria-label="現在地を表示"
-                title="現在地を表示"
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="h-6 w-6 text-gray-700"
+            {/* ズーム・現在地ボタン群（縦並び、右下固定） */}
+            <div className="absolute bottom-8 right-2 z-10 flex flex-col gap-2">
+
+                {/* ズームイン */}
+                <button
+                    onClick={handleZoomIn}
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md transition-colors hover:bg-gray-50 active:scale-95 focus:outline-none"
+                    aria-label="ズームイン"
+                    title="ズームイン"
                 >
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                    />
-                    <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"
-                    />
-                </svg>
-            </button>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        strokeWidth={2} stroke="currentColor" className="h-5 w-5 text-gray-700">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                </button>
+
+                {/* ズームアウト */}
+                <button
+                    onClick={handleZoomOut}
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md transition-colors hover:bg-gray-50 active:scale-95 focus:outline-none"
+                    aria-label="ズームアウト"
+                    title="ズームアウト"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        strokeWidth={2} stroke="currentColor" className="h-5 w-5 text-gray-700">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 12h-15" />
+                    </svg>
+                </button>
+
+                {/* 現在地 */}
+                <button
+                    onClick={handleCurrentLocation}
+                    className="flex h-12 w-12 items-center justify-center rounded-full bg-white shadow-md transition-colors hover:bg-gray-50 active:scale-95 focus:outline-none"
+                    aria-label="現在地を表示"
+                    title="現在地を表示"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        strokeWidth={1.5} stroke="currentColor" className="h-6 w-6 text-gray-700">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                    </svg>
+                </button>
+
+            </div>
 
             {/* マップ描画コンテナ */}
             <div ref={mapRef} className="h-full w-full" />
