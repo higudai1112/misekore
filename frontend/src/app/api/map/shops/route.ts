@@ -24,7 +24,23 @@ export async function GET() {
       select: {
         status: true,
         shop: {
-          select: { id: true, name: true, lat: true, lng: true },
+          select: {
+            id: true,
+            name: true,
+            lat: true,
+            lng: true,
+            // タグ情報（最大2件表示用）
+            shopTags: {
+              select: { tag: { select: { name: true } } },
+            },
+            // ユーザーの写真（1枚目のみ）
+            shopPhotos: {
+              where: { userId },
+              orderBy: { createdAt: 'asc' },
+              take: 1,
+              select: { imageUrl: true },
+            },
+          },
         },
       },
     })
@@ -35,6 +51,10 @@ export async function GET() {
       lat: us.shop.lat,
       lng: us.shop.lng,
       status: us.status,
+      // タグ名のみ最大2件
+      tags: us.shop.shopTags.slice(0, 2).map((st) => st.tag.name),
+      // カバー画像URL（なければnull）
+      coverImageUrl: us.shop.shopPhotos[0]?.imageUrl ?? null,
     }))
 
     return NextResponse.json(shops)
