@@ -16,8 +16,8 @@ interface ShopMarker {
     lat: number
     lng: number
     status: "WANT" | "VISITED" | "FAVORITE"
-    tags: string[]
-    coverImageUrl: string | null
+    tags: string[] | undefined
+    coverImageUrl: string | null | undefined
 }
 
 interface Props {
@@ -348,10 +348,10 @@ export function ShopMap({ avatarUrl }: Props) {
                         popup.appendChild(imageWrapper)
 
                         // タグ行（タグがある場合のみ表示、最大2件）
-                        if (shop.tags.length > 0) {
+                        if ((shop.tags ?? []).length > 0) {
                             const tagsRow = document.createElement("div")
                             tagsRow.className = "mt-2 flex flex-wrap gap-1"
-                            shop.tags.forEach((tagName) => {
+                            ;(shop.tags ?? []).forEach((tagName) => {
                                 const tag = document.createElement("span")
                                 tag.className = "rounded-full bg-gray-100 px-2 py-1 text-xs text-gray-600"
                                 tag.textContent = tagName
